@@ -40,10 +40,6 @@ function processData(csv) {
 	drawChart(lines);
 }
 
-function getData(csv){
-
-}
-
 function errorHandler(evt) {
 	if(evt.target.error.name == "NotReadableError") {
 		alert("Canno't read file !");
