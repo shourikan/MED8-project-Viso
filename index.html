@@ -159,9 +159,9 @@
 				  	.attr("r", 0.5)
 				  	.attr("cx", function(d) { return d.x; })
 					.attr("cy", function(d) { return d.y; })
-					.style("fill", function(d) { return d.cat2; })
+					.attr("fill", function(d) { return colors[d.cat2]; })
 				.append("svg:title")
-					.text(function(d) { return d.cat1; });	 				
+					.text(function(d) { return d.cat1; });
 
 				function dottype(d) {
 					d.x = +d.x;
