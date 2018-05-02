@@ -27,10 +27,10 @@ function processData(csv) {
 	var lines = [];
 	var rows = [[],[],[]];
     while (allTextLines.length) {
-		var line = allTextLines.shift().split(',');
-		for(var i=0; i<line.length; i++){
+		var line = allTextLines.shift().split('\t');
+		for(var i=0; i<2; i++)
 			line[i] = Number(line[i]);
-		}
+		line[3] = Number(line[3]);
 		lines.push(line);
     }
 	console.log(lines);
