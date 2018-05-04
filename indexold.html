@@ -28,9 +28,7 @@
 			<form>
 				<label for="csvFileInput"> <strong>CSV File:</strong>
 				</label>
-				<input type="file" id="csvFileInput" onchange="handleFiles(this.files)"
-				accept=".csv">
-				<button type="button" onclick="drawChart(null)">Auto</button>
+				<button type="button" onclick="test('https://raw.githubusercontent.com/shourikan/Viso/master/packed.tsv')">Load</button>
 			</form>
 			<br>
 			<div id="output" style="max-height:50px;overflow-y:scroll;border:green solid 1px">
@@ -49,6 +47,20 @@
 		-->
 		<script type="text/javascript">
 
+		function swapPhase(p){
+			var d = document.getElementsByClassName("dot")[0];
+			var s = document.getElementsByClassName("shape")[0];
+			if(p==1){
+				d.setAttribute("display", "");
+				s.setAttribute("display", "none");
+				phase = 1;
+			} else if (p == 2){
+				d.setAttribute("display", "none");
+				s.setAttribute("display", "");
+				phase = 2;
+			}
+		}
+
 		function drawChart(data){
 
 			//Turn off loading window
@@ -59,6 +71,7 @@
 			var h = 960;
 			var size = 1;
 			var padding = 30;
+			phase = 1;
 
 			//Color palette
 			var colors = ["white", "#F19CA2", "#EDF8B1", "#CC4C02", "#7FCDBB", "#C7E9B4", 
@@ -72,7 +85,14 @@
 					.attr("height", "100%")
 				.append("g")
 					.call(d3.zoom().on("zoom", function () {
-					container.attr("transform", d3.event.transform)
+					container.attr("transform", d3.event.transform);
+					var scale = container.attr("transform").match(/\((.*?)\)/g)[1];
+					scale = scale.substring(1, scale.length-1);
+					//console.log(scale);
+					if (parseInt(scale) < 20 && phase == 2)
+						swapPhase(1);
+					else if (parseInt(scale) >= 20 && phase == 1)
+						swapPhase(2);
 				}));
 
 			var rect = svg.append("rect")
@@ -106,9 +126,11 @@
 				var yAxis = d3.axisLeft()
 							.scale(yScale)
 							.ticks(5);*/
-							
+						
+				//Draw dots
 				dot = container.append("g")
 						.attr("class", "dot")
+						.attr("display", "")
 					.selectAll("circle")
 						.data(dataset)
 						.enter()
@@ -118,7 +140,20 @@
 						.attr("r", 1)
 						.attr("fill", function(d) { return colors[d[3]]; })
 					.append("svg:title")
-						.text(function(d) { return d[2]; });		
+						.text(function(d) { return d[2]; });
+						
+				//Draw shapes
+				shape = container.append("g")
+						.attr("class", "shape")
+						.attr("display", "none")
+					.selectAll("circle")
+						.data(dataset)
+						.enter()
+					.append("circle")
+						.attr("cx",function(d) { return xScale(d[0]);})
+						.attr("cy",function(d) { return yScale(d[1]);})
+						.attr("r", 1)
+						.attr("fill", "black");
 						
 					/* svg.selectAll("text")
 					.data(dataset)
@@ -147,30 +182,7 @@
 						.attr("class", "axis")
 						.attr("transform", "translate("+ (padding-size) +","+ (size) +")")
 						.call(yAxis);*/
-			} else {
-				
-				var dots = d3.tsv("packed.tsv", dottype, function(error, dots) { return dots; });
-				dot = container.append("g")
-				  	.attr("class", "dot")
-				.selectAll("circle")
-				  	.data(dots)
-					.enter()
-				.append("circle")
-				  	.attr("r", 0.5)
-				  	.attr("cx", function(d) { return d.x; })
-					.attr("cy", function(d) { return d.y; })
-					.attr("fill", function(d) { return colors[d.cat2]; })
-				.append("svg:title")
-					.text(function(d) { return d.cat1; });
-
-				function dottype(d) {
-					d.x = +d.x;
-					d.y = +d.y;
-					return d;
-					}
-
-			}	
-				
+			}
 		}
 
 		</script>

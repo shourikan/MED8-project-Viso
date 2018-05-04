@@ -1,31 +1,36 @@
-function handleFiles(files) {
-	// Check for the various File API support.
-	if (window.FileReader) {
-		// FileReader are supported.
-		getAsText(files[0]);
-	} else {
-		alert('FileReader are not supported in this browser.');
-	}
-}
-
-function getAsText(fileToRead) {
+function handleFile(fileToRead) {
 	var reader = new FileReader();
+	var file = new File([fileToRead], 'data.tsv');
 	// Handle errors load
 	reader.onload = loadHandler;
 	reader.onerror = errorHandler;
 	// Read file into memory as UTF-8      
-	reader.readAsText(fileToRead);
+	reader.readAsText(file);
+}
+
+function test(url){
+	var xhr = new XMLHttpRequest();
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == XMLHttpRequest.DONE) {
+			//alert(xhr.responseText);
+			handleFile(xhr.responseText);
+		}
+	}
+	xhr.open('GET', url, true);
+	xhr.send(null);
+
 }
 
 function loadHandler(event) {
-	var csv = event.target.result;
-	processData(csv);             
+	var file = event.target.result;
+	processData(file);             
 }
 
-function processData(csv) {
-    var allTextLines = csv.split(/\r\n|\n/);
+function processData(file) {
+    var allTextLines = file.split(/\r\n|\n/);
 	var lines = [];
 	var rows = [[],[],[]];
+	allTextLines.shift();
     while (allTextLines.length) {
 		var line = allTextLines.shift().split('\t');
 		for(var i=0; i<2; i++)
@@ -33,8 +38,8 @@ function processData(csv) {
 		line[3] = Number(line[3]);
 		lines.push(line);
     }
-	console.log(lines);
-	drawOutput(lines);
+	//console.log(lines);
+	//drawOutput(lines);
 
 	//Call D3.js drawing
 	drawChart(lines);
