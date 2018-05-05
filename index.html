@@ -25,7 +25,7 @@
 			### CSV Script ###
 		-->
 		<script type="text/javascript" src="read-csv.js"></script>
-		
+
 		<!--
 			### CSV File ###
 		-->
@@ -71,22 +71,37 @@
 			//Width and height
 			var w = 1440;
 			var h = 960;
+			var scale = [1, 1000];
+
+			//Phase1 variables
 			var size = 1;
 			var padding = 30;
 			phase = 1;
+
+			//Phase2 variables
+			var donutW = 2;
+			var donutH = 2;
+			var radius = Math.min(donutW, donutH) / 2;
+			var donutWidth = Math.min(donutW, donutH) / 3;
+			var padAngle = 0.05;
+			var padRadius = 0;
 
 			//Color palette
 			var colors = ["white", "#F19CA2", "#EDF8B1", "#CC4C02", "#7FCDBB", "#C7E9B4", 
 			"#FFFFD9", "#1D91C0", "#ED5276", "#00585E", "#253494", "#FBF484", "#FF5729", "#00BDAA", "white",
 			"#081D58", "#993404", "#FEC44F", "white", "#F4CDA5", "#9C4368", "#A5D3E6", "#009494", "#F8D7D0", "#004E2A"];
 
-			//Create SVG elements
+			//Macro chart data/colors
+			var macroNames = ["Macro1", "Macro2", "Macro3"];
+    		var macroColors = ["black", "#F19CA2", "#EDF8B1"];
+
+			//Create SVG element
 			var svg = d3.select("body")
 				.append("svg")
 					.attr("width", "100%")
 					.attr("height", "100%")
 				.append("g")
-					.call(d3.zoom().on("zoom", function () {
+					.call(d3.zoom().scaleExtent(scale).on("zoom", function () {
 					container.attr("transform", d3.event.transform);
 					var scale = container.attr("transform").match(/\((.*?)\)/g)[1];
 					scale = scale.substring(1, scale.length-1);
@@ -104,6 +119,14 @@
 				.style("pointer-events", "all");
 
 			var container = svg.append("g");
+
+			//Create donut properties
+			var arc = d3.arc()
+				.innerRadius(radius - donutWidth)
+				.outerRadius(radius)
+				.cornerRadius(padRadius)
+				.padAngle(padAngle);
+			
 
 			if (data!=null){
 				var dataset = data;
@@ -148,6 +171,24 @@
 				shape = container.append("g")
 						.attr("class", "shape")
 						.attr("display", "none")
+					.selectAll("g")
+						.data(dataset)
+						.enter()
+					.append("g")
+						.attr('transform', function(d){return "translate("+xScale(d[0])+","+yScale(d[1])+")";})
+						.each(function (d) {
+							var tempData = [d[0], d[1], d[3]]; 
+							d3.select(this).selectAll('path')
+									.data(d3.pie()(tempData))
+									.enter()
+								.append('path')
+									.attr('d', arc)
+									.attr('fill', function(d, i){return macroColors[i];});   
+							
+						  });
+				/*shape = container.append("g")
+						.attr("class", "shape")
+						.attr("display", "none")
 					.selectAll("circle")
 						.data(dataset)
 						.enter()
@@ -155,7 +196,7 @@
 						.attr("cx",function(d) { return xScale(d[0]);})
 						.attr("cy",function(d) { return yScale(d[1]);})
 						.attr("r", 1)
-						.attr("fill", "black");
+						.attr("fill", "black");*/
 						
 					/* svg.selectAll("text")
 					.data(dataset)
