@@ -68,7 +68,7 @@
 			//Turn off loading window
 			document.getElementById("load").style.display = "none";
 
-			//Width and height
+			//Canvas variables
 			var w = 1440;
 			var h = 960;
 			var scale = [1, 1000];
@@ -79,12 +79,21 @@
 			phase = 1;
 
 			//Phase2 variables
-			var donutW = 2;
-			var donutH = 2;
+			var itemX = 4;
+			//Donut
+			var donutW = itemX/2;
+			var donutH = itemX/2;
 			var radius = Math.min(donutW, donutH) / 2;
 			var donutWidth = Math.min(donutW, donutH) / 3;
 			var padAngle = 0.05;
 			var padRadius = 0;
+			//Polygon/Lines
+			var t = 0;
+			var items = 11;
+			var angleProgress = 360/(items+1);
+			var path = "";
+			var innerR = donutW/2;
+			var finalT = t+innerR;
 
 			//Color palette
 			var colors = ["white", "#F19CA2", "#EDF8B1", "#CC4C02", "#7FCDBB", "#C7E9B4", 
@@ -177,13 +186,46 @@
 					.append("g")
 						.attr('transform', function(d){return "translate("+xScale(d[0])+","+yScale(d[1])+")";})
 						.each(function (d) {
+							var el = d3.select(this);
+							//Donut
 							var tempData = [d[0], d[1], d[3]]; 
 							d3.select(this).selectAll('path')
 									.data(d3.pie()(tempData))
 									.enter()
 								.append('path')
 									.attr('d', arc)
-									.attr('fill', function(d, i){return macroColors[i];});   
+									.attr('fill', function(d, i){return macroColors[i];});
+							
+							//Lines
+							path = "";
+							for(var i = 0; i < items; i++) {
+								
+								var cx = 0, cy = 0;
+
+								var r = (Math.random() * (itemX/2))+itemX/4;
+								var x = cx + r * Math.cos(2 * Math.PI * i / items);
+								var y = cy + r * Math.sin(2 * Math.PI * i / items);
+								var innerX = cx + innerR * Math.cos(2 * Math.PI * i / items);
+								var innerY = cy + innerR * Math.sin(2 * Math.PI * i / items);
+
+								//console.log(cx, cy, r, x, y, innerX, innerY);
+								path = path.concat(x+","+y+", "); 
+								
+								var line = el.append("line")
+										.attr("x1", innerX)
+										.attr("y1", innerY)
+										.attr("x2", x)
+										.attr("y2", y)
+										.attr('stroke-width', 0.1)
+										.attr("stroke", "black");
+							}
+							//Polygon
+							path = path.substring(0, path.length-2);
+							var polygon = el.append("polygon")
+								.attr('stroke-width', 0.1)
+								.attr("stroke", "black")
+								.attr("fill", "none")
+								.attr("points", path);
 							
 						  });
 				/*shape = container.append("g")
