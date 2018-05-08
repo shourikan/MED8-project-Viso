@@ -33,7 +33,7 @@
 			<form>
 				<label for="csvFileInput"> <strong>CSV File:</strong>
 				</label>
-				<button type="button" onclick="test('https://raw.githubusercontent.com/shourikan/Viso/master/packed.tsv')">Load</button>
+				<button type="button" onclick="test('https://raw.githubusercontent.com/shourikan/Viso/master/final.csv')">Load</button>
 			</form>
 			<br>
 			<div id="output" style="max-height:50px;overflow-y:scroll;border:green solid 1px">
@@ -78,22 +78,17 @@
 			var padding = 30;
 			phase = 1;
 
+			
 			//Phase2 variables
-			var itemX = 4;
 			//Donut
-			var donutW = itemX/2;
-			var donutH = itemX/2;
-			var radius = Math.min(donutW, donutH) / 2;
-			var donutWidth = Math.min(donutW, donutH) / 3;
+			var itemX = 4;
 			var padAngle = 0.05;
 			var padRadius = 0;
-			//Polygon/Lines
+			//Polygon, Lines
 			var t = 0;
 			var items = 11;
 			var angleProgress = 360/(items+1);
 			var path = "";
-			var innerR = donutW/2;
-			var finalT = t+innerR;
 
 			//Color palette
 			var colors = ["white", "#F19CA2", "#EDF8B1", "#CC4C02", "#7FCDBB", "#C7E9B4", 
@@ -101,8 +96,8 @@
 			"#081D58", "#993404", "#FEC44F", "white", "#F4CDA5", "#9C4368", "#A5D3E6", "#009494", "#F8D7D0", "#004E2A"];
 
 			//Macro chart data/colors
-			var macroNames = ["Macro1", "Macro2", "Macro3"];
-    		var macroColors = ["black", "#F19CA2", "#EDF8B1"];
+			var macroNames = ["Protein", "Fat", "Carb"];
+    		var macroColors = ["rgb(215,223,35)", "rgb(247,148,30)", "rgb(190,30,45)"];
 
 			//Create SVG element
 			var svg = d3.select("body")
@@ -130,11 +125,7 @@
 			var container = svg.append("g");
 
 			//Create donut properties
-			var arc = d3.arc()
-				.innerRadius(radius - donutWidth)
-				.outerRadius(radius)
-				.cornerRadius(padRadius)
-				.padAngle(padAngle);
+			
 			
 
 			if (data!=null){
@@ -148,6 +139,23 @@
 				var yScale = d3.scaleLinear()
 								.domain([d3.min(dataset, function(d) { return d[1]; }), d3.max(dataset, function(d) { return d[1]; })])
 								.range([h-padding, padding]);
+
+				//Size scale
+				var itemSizeScale = d3.scaleLinear()
+				.domain([d3.min(dataset, function(d) { return d[4]; }), d3.max(dataset, function(d) { return d[4]; })])
+				.range([0, 1]);
+
+				//Shape scales
+				var itemScales = [items];
+				for (var i = 0; i<items; i++){
+					var index = i+8;
+					//itemScales[i] = d3.max(dataset, function(d) { return d[index]; });
+					itemScales[i] = d3.scaleLinear()
+				.domain([0, d3.max(dataset, function(d) { return d[index]; })])
+				.range([0, 1]);
+					//console.log(itemScales[i]);
+				}
+
 				/*var rScale = d3.scaleLinear()
 								.domain([d3.min(dataset, function(d) { return d[1]; }), d3.max(dataset, function(d) { return d[1]; })])
 								.range([size, size]);*/														
@@ -187,45 +195,73 @@
 						.attr('transform', function(d){return "translate("+xScale(d[0])+","+yScale(d[1])+")";})
 						.each(function (d) {
 							var el = d3.select(this);
+
+							var elSize = itemSizeScale(d[4])*itemX;
+							//console.log(elSize);
+							
+							var donutW = elSize/2;
+							var radius = donutW / 2;
+							var donutWidth = donutW / 6;
+
+							var arc = d3.arc()
+								.innerRadius(radius - donutWidth)
+								.outerRadius(radius)
+								.cornerRadius(padRadius)
+								.padAngle(padAngle);
+							
+
 							//Donut
-							var tempData = [d[0], d[1], d[3]]; 
+							var tempData = [d[5], d[6], d[7]]; 
 							d3.select(this).selectAll('path')
-									.data(d3.pie()(tempData))
+									.data(d3.pie().sort(null)(tempData))
 									.enter()
 								.append('path')
 									.attr('d', arc)
-									.attr('fill', function(d, i){return macroColors[i];});
+									.attr('fill', function(d, i){return macroColors[i];})
+								.append("svg:title")
+									.text(d[2]);
 							
 							//Lines
 							path = "";
+							var innerR = donutW/2;
+							//var finalT = t+innerR;
 							for(var i = 0; i < items; i++) {
 								
+								var index = i+8;
 								var cx = 0, cy = 0;
-
-								var r = (Math.random() * (itemX/2))+itemX/4;
+								
+								var maxR = elSize/2;
+								//var r = ((itemScales[i](d[index]))*maxR)+innerR;
+								var r = d[index]+innerR;
+								r = (r>2) ? 2 : r;
+								//console.log(itemScales[i](d[index]), maxR);
 								var x = cx + r * Math.cos(2 * Math.PI * i / items);
 								var y = cy + r * Math.sin(2 * Math.PI * i / items);
 								var innerX = cx + innerR * Math.cos(2 * Math.PI * i / items);
 								var innerY = cy + innerR * Math.sin(2 * Math.PI * i / items);
 
-								//console.log(cx, cy, r, x, y, innerX, innerY);
+								//console.log(cx, cy, maxR, r, x, y, innerX, innerY);
+								//console.log(d[index], itemScales[i], d[index]/itemScales[i]);
 								path = path.concat(x+","+y+", "); 
 								
+								//var widthS = ((elSize/itemX)*0.1);
 								var line = el.append("line")
 										.attr("x1", innerX)
 										.attr("y1", innerY)
 										.attr("x2", x)
 										.attr("y2", y)
-										.attr('stroke-width', 0.1)
+										.attr('stroke-width', 0.01)
 										.attr("stroke", "black");
 							}
 							//Polygon
 							path = path.substring(0, path.length-2);
 							var polygon = el.append("polygon")
-								.attr('stroke-width', 0.1)
-								.attr("stroke", "black")
-								.attr("fill", "none")
-								.attr("points", path);
+									.attr('stroke-width', 0.01)
+									.attr("stroke", "black")
+									.attr("fill", "none")
+									.attr("points", path)
+								.append("svg:title")
+									.text(d[2]);
 							
 						  });
 				/*shape = container.append("g")
