@@ -35,7 +35,8 @@ function processData(file) {
 		var line = allTextLines.shift().split('\t');
 		for(var i=0; i<2; i++)
 			line[i] = Number(line[i]);
-		for(var i=3; i<line.length; i++)
+		line[3] = Number(line[3]);
+		for(var i=5; i<line.length; i++)
 			line[i] = Number(line[i]);
 		lines.push(line);
     }

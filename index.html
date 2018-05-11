@@ -8,7 +8,7 @@
 			<style type="text/css">
 				/*style of class axis*/	
 				body { margin:0;position:fixed;top:0;right:0;bottom:0;left:0; }
-				.axis path,
+				/*.axis path,
 				.axis line {
 					fill: none;
 					stroke: violet;
@@ -17,6 +17,38 @@
 				.axis text {
 					font-family: sans-serif;
 					font-size: 10px;
+				}*/
+				.screen{
+					position:fixed;
+					display: flex;
+					align-items: center;
+					width:100%;
+					height:100%
+				}
+				.checkboxmenu{
+					font-size: 13px;
+					position: fixed;
+    				left: 0;
+					/*display:flex;
+					align-items: center;*/
+					width: 250px; 
+					height:100%;
+					/*border-radius: 0 8px 8px 0;*/
+					background-color: rgba(163, 163, 163, 0.795);
+				}
+				.checkboxmenubuttons{
+					position: relative;
+					top: 50px;
+					margin-left: 10px;
+				}
+				.catBox{
+					/*Checkboxes*/
+				}
+				.colorBox{
+					display: inline-block;
+					border: 1px solid black;
+					width: 12px;
+					height: 12px;
 				}
 			</style>
 	</head>
@@ -33,21 +65,61 @@
 			<form>
 				<label for="csvFileInput"> <strong>CSV File:</strong>
 				</label>
-				<button type="button" onclick="test('https://raw.githubusercontent.com/shourikan/Viso/master/final.csv')">Load</button>
+				<button type="button" onclick="test('https://raw.githubusercontent.com/shourikan/Viso/master/final.tsv')">Load</button>
 			</form>
 			<br>
 			<div id="output" style="max-height:50px;overflow-y:scroll;border:green solid 1px">
 			</div>
 		</fieldset>
 		<!--
-			### Chart div ###
-		
-		<div id="canvas" style="width: 800px; height:400px;"></div>-->
+			### Checkbox menu ###
+		-->
+
+		<div class="screen" style="display:none;">
+			<div class="checkboxmenu">
+				<div class="checkboxmenubuttons">
+					<div class="colorBox" style="background-color:#FFFFD9"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c6" checked> Cereal Grains and Pasta<br>
+					<div class="colorBox" style="background-color:#EDF8B1"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c2" checked> Baked Products<br>
+					<div class="colorBox" style="background-color:#C7E9B4"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c5" checked> Breakfast Cereals<br>
+					<div class="colorBox" style="background-color:#7FCDBB"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c4" checked> Beverages<br>
+					<div class="colorBox" style="background-color:#FBF484"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c11" checked> Fruits and Fruit Juices<br><br>
+
+					<div class="colorBox" style="background-color:#A5D3E6"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c21" checked> Soups, Sauces, and Gravies<br>
+					<div class="colorBox" style="background-color:#1D91C0"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c7" checked> Dairy and Egg Products<br>
+					<div class="colorBox" style="background-color:#253494"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c10" checked> Finfish and Shellfish Products<br><br>
+
+					<div class="colorBox" style="background-color:#F4CDA5"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c19" checked> Sausages and Luncheon Meats<br>
+					<div class="colorBox" style="background-color:#FEC44F"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c17" checked> Poultry Products<br>
+					<div class="colorBox" style="background-color:#FF5729"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c12" checked> Lamb, Veal, and Game Products<br>
+					<div class="colorBox" style="background-color:#CC4C02"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c3" checked> Beef Products<br>
+					<div class="colorBox" style="background-color:#993404"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c16" checked> Pork Products<br><br>
+
+					<div class="colorBox" style="background-color:#00BDAA"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c13" checked> Legumes and Legume Product<br>
+					<div class="colorBox" style="background-color:#009494"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c22" checked> Spices and Herbs<br>
+					<div class="colorBox" style="background-color:#00585E"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c9" checked> Fats and Oils<br>
+					<div class="colorBox" style="background-color:#004E2A"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c24" checked>  Vegetables and Vegetable Products<br>
+					<div class="colorBox" style="background-color:#081D58"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c15" checked> Nut and Seed Products<br><br>
+
+					<div class="colorBox" style="background-color:#F8D7D0"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c23" checked> Sweets<br>
+					<div class="colorBox" style="background-color:#F19CA2"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c1" checked> Baby Foods<br>
+					<div class="colorBox" style="background-color:#9C4368"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c20" checked> Snacks<br>
+					<div class="colorBox" style="background-color:#ED5276"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c8" checked> Fast Foods
+				</div>
+			</div>
+		</div>
 		
 		<!--
 			### D3 Script ###
 		-->
 		<script type="text/javascript">
+
+		function filter(el){
+			var visible = (el.checked) ? "" : "none";
+			console.log(el.value);
+			d3.select(".dot")
+				.selectAll("."+el.value)
+				.attr("display", visible);
+		}
 
 		function swapPhase(p){
 			var d = document.getElementsByClassName("dot")[0];
@@ -67,6 +139,7 @@
 
 			//Turn off loading window
 			document.getElementById("load").style.display = "none";
+			document.getElementsByClassName("screen")[0].style.display = "flex";
 
 			//Canvas variables
 			var w = 1440;
@@ -91,16 +164,16 @@
 			var path = "";
 
 			//Color palette
-			var colors = ["white", "#F19CA2", "#EDF8B1", "#CC4C02", "#7FCDBB", "#C7E9B4", 
-			"#FFFFD9", "#1D91C0", "#ED5276", "#00585E", "#253494", "#FBF484", "#FF5729", "#00BDAA", "white",
-			"#081D58", "#993404", "#FEC44F", "white", "#F4CDA5", "#9C4368", "#A5D3E6", "#009494", "#F8D7D0", "#004E2A"];
+			var colors = ["black", "#F19CA2", "#EDF8B1", "#CC4C02", "#7FCDBB", "#C7E9B4", 
+			"#FFFFD9", "#1D91C0", "#ED5276", "#00585E", "#253494", "#FBF484", "#FF5729", "#00BDAA", "black",
+			"#081D58", "#993404", "#FEC44F", "black", "#F4CDA5", "#9C4368", "#A5D3E6", "#009494", "#F8D7D0", "#004E2A"];
 
 			//Macro chart data/colors
 			var macroNames = ["Protein", "Fat", "Carb"];
     		var macroColors = ["rgb(215,223,35)", "rgb(247,148,30)", "rgb(190,30,45)"];
 
 			//Create SVG element
-			var svg = d3.select("body")
+			var svg = d3.select(".screen")
 				.append("svg")
 					.attr("width", "100%")
 					.attr("height", "100%")
@@ -119,7 +192,7 @@
 			var rect = svg.append("rect")
 				.attr("width", w)
 				.attr("height", h)
-				.style("fill", "none")
+				.style("fill", "black")
 				.style("pointer-events", "all");
 
 			var container = svg.append("g");
@@ -142,13 +215,13 @@
 
 				//Size scale
 				var itemSizeScale = d3.scaleLinear()
-				.domain([d3.min(dataset, function(d) { return d[4]; }), d3.max(dataset, function(d) { return d[4]; })])
+				.domain([d3.min(dataset, function(d) { return d[5]; }), d3.max(dataset, function(d) { return d[5]; })])
 				.range([0, 1]);
 
 				//Shape scales
 				var itemScales = [items];
 				for (var i = 0; i<items; i++){
-					var index = i+8;
+					var index = i+9;
 					//itemScales[i] = d3.max(dataset, function(d) { return d[index]; });
 					itemScales[i] = d3.scaleLinear()
 				.domain([0, d3.max(dataset, function(d) { return d[index]; })])
@@ -181,11 +254,13 @@
 						.attr("cy",function(d) { return yScale(d[1]);})
 						.attr("r", 1)
 						.attr("fill", function(d) { return colors[d[3]]; })
+						.attr("id", function(d) { return d[4];})
+						.attr("class", function(d) { return "c"+d[3]; })
 					.append("svg:title")
 						.text(function(d) { return d[2]; });
 						
 				//Draw shapes
-				shape = container.append("g")
+				/*shape = container.append("g")
 						.attr("class", "shape")
 						.attr("display", "none")
 					.selectAll("g")
@@ -196,7 +271,7 @@
 						.each(function (d) {
 							var el = d3.select(this);
 
-							var elSize = itemSizeScale(d[4])*itemX;
+							var elSize = itemSizeScale(d[5])*itemX;
 							//console.log(elSize);
 							
 							var donutW = elSize/2;
@@ -211,7 +286,7 @@
 							
 
 							//Donut
-							var tempData = [d[5], d[6], d[7]]; 
+							var tempData = [d[6], d[7], d[8]]; 
 							d3.select(this).selectAll('path')
 									.data(d3.pie().sort(null)(tempData))
 									.enter()
@@ -227,7 +302,7 @@
 							//var finalT = t+innerR;
 							for(var i = 0; i < items; i++) {
 								
-								var index = i+8;
+								var index = i+9;
 								var cx = 0, cy = 0;
 								
 								var maxR = elSize/2;
@@ -263,7 +338,7 @@
 								.append("svg:title")
 									.text(d[2]);
 							
-						  });
+						  });*/
 				/*shape = container.append("g")
 						.attr("class", "shape")
 						.attr("display", "none")
