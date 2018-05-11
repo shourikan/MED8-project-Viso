@@ -28,15 +28,17 @@
 					width:100%;
 					height:100%
 				}
+				.searchBar{
+					position: fixed;
+					top: 0;
+					right: 0;
+				}
 				.checkboxmenu{
 					font-size: 13px;
 					position: fixed;
     				left: 0;
-					/*display:flex;
-					align-items: center;*/
 					width: 250px; 
 					height:100%;
-					/*border-radius: 0 8px 8px 0;*/
 					background-color: rgba(163, 163, 163, 0.795);
 				}
 				.checkboxmenubuttons{
@@ -53,6 +55,33 @@
 					width: 12px;
 					height: 12px;
 				}
+				input[type=text] {
+					width: 130px;
+					height: 40px;
+					box-sizing: border-box;
+					border: 1px solid #cccccc6b;
+					border-radius: 4px;
+					font-size: 16px;
+					color: white;
+					background-color: rgba(180, 180, 180, 0);
+					background-image: url('searchicon.png');
+					background-size: 21px 21px;
+					background-position: 10px; 
+					background-repeat: no-repeat;
+					padding: 12px 20px 12px 40px;
+					-webkit-transition: width 0.4s ease-in-out;
+					transition: width 0.4s ease-out;
+    				animation: blinker 1s cubic-bezier(0.4, 0, 1, 1) infinite;
+				}
+				input[type=text]:focus {
+					width: 200px;
+					animation: none;
+				}
+				@keyframes blinker {
+					50% {
+						border: 1px solid rgba(180, 180, 180, 0.24);
+					}
+				  }
 			</style>
 	</head>
 	<body>
@@ -79,6 +108,9 @@
 		-->
 
 		<div class="screen" style="display:none;">
+			<div class="searchBar">
+				<input type="text" name="search" placeholder="Search..." onkeypress="keyPress(this, event);">
+			</div>
 			<div class="checkboxmenu">
 				<div class="checkboxmenubuttons">
 					<div class="colorBox" style="background-color:#FFFFD9"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c6" checked> Cereal Grains and Pasta<br>
@@ -115,6 +147,63 @@
 			### D3 Script ###
 		-->
 		<script type="text/javascript">
+		var base;
+		var w = 1920;
+		var h = 1080;
+
+		function zoomTo(point){
+			var t = [2];
+			var scale = 22;
+			var cx = w/2;
+			var cy = h/2;
+			t[0] = cx-(point[0]*(scale));
+			t[1] = cy-(point[1]*(scale));
+			d3.select(".zoomer").attr("transform", "translate("+t[0]+","+t[1]+")scale("+scale+")");
+			swapPhase(2);
+		}
+
+		function keyPress(el, e){
+			var value = el.value;
+			if (e.keyCode == 13) {
+				//console.log(value);
+				el.value = "";
+				el.placeholder = checkName(value);
+			}
+			/*else{
+				console.log('Other key');
+			}*/
+		}
+
+		function checkName(name){
+			var list = search(name);
+			
+			if(list.length > 0){
+				if(list.length == 1){
+					var point = d3.select("[id='"+list[0]+"']");
+					//console.log(point.attr("cx"), point.attr("cy"), base[list[0]][4], list[0]);
+					zoomTo([point.attr("cx"),point.attr("cy")]);
+					return "Found!";
+				}
+				else{
+					console.log(list);
+					return "Console..";
+				}
+			}
+			else{
+				return "Nothing..";
+			}
+			return "Error";
+			
+		}
+
+		function search(name){
+			var result = [];
+			base.forEach(function(el, i) {
+				if(el[4].includes(name))
+					result.push(i);
+			});
+			return result;
+		}
 
 		function filter(el){
 			var visible = (el.checked) ? "" : "none";
@@ -140,71 +229,89 @@
 
 		function drawChart(data){
 
-			//Turn off loading window
-			document.getElementById("load").style.display = "none";
-			document.getElementsByClassName("screen")[0].style.display = "flex";
-
-			//Canvas variables
-			var w = 1920;
-			var h = 1080;
-			var scale = [1, 1000];
-
-			//Phase1 variables
-			var size = 1;
-			var padding = 30;
-			phase = 1;
-
-			
-			//Phase2 variables
-			//Donut
-			var itemX = 8;
-			var padAngle = 0.05;
-			var padRadius = 0;
-			//Polygon, Lines
-			var t = 0;
-			var items = 11;
-			var angleProgress = 360/(items+1);
-			var path = "";
-
-			//Color palette
-			var colors = ["black", "#F19CA2", "#EDF8B1", "#CC4C02", "#7FCDBB", "#C7E9B4", 
-			"#FFFFD9", "#1D91C0", "#ED5276", "#00585E", "#253494", "#FBF484", "#FF5729", "#00BDAA", "black",
-			"#081D58", "#993404", "#FEC44F", "black", "#F4CDA5", "#9C4368", "#A5D3E6", "#009494", "#F8D7D0", "#004E2A"];
-
-			//Macro chart data/colors
-			var macroNames = ["Protein", "Fat", "Carb"];
-    		var macroColors = ["rgb(215,223,35)", "rgb(190,30,45)", "rgb(247,148,30)"];
-
-			//Create SVG element
-			var svg = d3.select(".screen")
-				.append("svg")
-					.attr("width", "100%")
-					.attr("height", "100%")
-				.append("g")
-					.call(d3.zoom().scaleExtent(scale).on("zoom", function () {
-					container.attr("transform", d3.event.transform);
-					var scale = container.attr("transform").match(/\((.*?)\)/g)[1];
-					scale = scale.substring(1, scale.length-1);
-					//console.log(scale);
-					if (parseInt(scale) < 20 && phase == 2)
-						swapPhase(1);
-					else if (parseInt(scale) >= 20 && phase == 1)
-						swapPhase(2);
-				}));
-
-			var rect = svg.append("rect")
-				.attr("width", w)
-				.attr("height", h)
-				.style("fill", "black")
-				.style("pointer-events", "all");
-
-			var container = svg.append("g");
-
-			//Create donut properties
-			
-			
-
 			if (data!=null){
+
+				base = data;
+
+				//Turn off loading window
+				document.getElementById("load").style.display = "none";
+				document.getElementsByClassName("screen")[0].style.display = "flex";
+
+				//Canvas variables
+				var scale = [1, 1000];
+
+				//Phase1 variables
+				var size = 1;
+				var padding = 30;
+				phase = 1;
+
+				
+				//Phase2 variables
+				//Donut
+				var itemX = 12;
+				var padAngle = 0.05;
+				var padRadius = 0;
+				//Polygon, Lines
+				var t = 0;
+				var items = 11;
+				var angleProgress = 360/(items+1);
+				var path = "";
+
+				//Food Categories
+				var categories = ["American Indian/Alaska Native Foods", "Baby Foods", "Baked Products", "Beef Products", "Beverages", "Breakfast Cereals", 
+				"Cereal Grains and Pasta", "Dairy and Egg Products", "Fast Foods", "Fats and Oils", "Finfish and Shellfish Products", "Fruits and Fruit Juices", "Lamb, Veal, and Game Products", "Legumes and Legume Products", "Meals, Entrees, and Side Dishes",
+				"Nut and Seed Products", "Pork Products", "Poultry Products", "Restaurant Foods", "Sausages and Luncheon Meats", "Snacks", "Soups, Sauces, and Gravies", "Spices and Herbs", "Sweets", "Vegetables and Vegetable Products"];
+
+				//Categories Colors
+				var colors = ["black", "#F19CA2", "#EDF8B1", "#CC4C02", "#7FCDBB", "#C7E9B4", 
+				"#FFFFD9", "#1D91C0", "#ED5276", "#00585E", "#253494", "#FBF484", "#FF5729", "#00BDAA", "black",
+				"#081D58", "#993404", "#FEC44F", "black", "#F4CDA5", "#9C4368", "#A5D3E6", "#009494", "#F8D7D0", "#004E2A"];
+
+				//Macro chart data/colors
+				var macroNames = ["Protein", "Fat", "Carb"];
+				var macroColors = ["rgb(215,223,35)", "rgb(190,30,45)", "rgb(247,148,30)"];
+
+				var zoom = d3.zoom().scaleExtent(scale).on("zoom", zoomF);
+
+				function zoomF(){
+					var k = d3.event.transform.k;
+					var x = d3.event.transform.x;
+					var y = d3.event.transform.y;
+
+					container.attr("transform", d3.event.transform);
+					
+					//Extracting scale
+					/*var scale = container.attr("transform").match(/\((.*?)\)/g)[1];
+					scale = scale.substring(1, scale.length-1);*/
+					//console.log(d3.event.transform.k);
+					if (k < 20 && phase == 2)
+						swapPhase(1);
+					else if (k >= 20 && phase == 1)
+						swapPhase(2);
+				}
+
+				//Create SVG element
+				var svg = d3.select(".screen")
+					.append("svg")
+						.attr("width", "100%")
+						.attr("height", "100%")
+					.append("g")
+						.call(zoom);
+
+				var rect = svg.append("rect")
+					.attr("width", w)
+					.attr("height", h)
+					.style("fill", "black")
+					.style("pointer-events", "all");
+
+				var container = svg.append("g")
+					.attr("class", "zoomer");
+
+				//Create donut properties
+				
+				
+
+				
 				var dataset = data;
 				
 				//Solution to negative values could be global shift of values by min value
@@ -257,10 +364,10 @@
 						.attr("cy",function(d) { return yScale(d[1]);})
 						.attr("r", 1)
 						.attr("fill", function(d) { return colors[d[3]]; })
-						.attr("id", function(d) { return d[4];})
+						.attr("id", function(d, i) { return i;})
 						.attr("class", function(d) { return "c"+d[3]; })
 					.append("svg:title")
-						.text(function(d) { return d[2]; });
+						.text(function(d) { return d[4]; });
 						
 				var strokeColor = "white";
 				//Draw shapes
@@ -278,7 +385,7 @@
 							var elSize = itemSizeScale(d[5])*itemX;
 							//console.log(elSize);
 							
-							var donutW = elSize/2;
+							var donutW = elSize/3;
 							var radius = donutW / 2;
 							var donutWidth = donutW / 6;
 
@@ -290,17 +397,18 @@
 							
 							//Lines
 							path = "";
-							var innerR = donutW/2;
+							var innerR = radius;
+							var maxR = (elSize/2)-innerR;
 							//var finalT = t+innerR;
 							for(var i = 0; i < items; i++) {
 								
 								var index = i+9;
 								var cx = 0, cy = 0;
 								
-								var maxR = elSize/2;
+								
 								var r = ((itemScales[i](d[index]))*maxR)+innerR;
 								//var r = d[index]+innerR;
-								//r = (r>2) ? 2 : r;
+								r = (r>maxR+innerR) ? maxR+innerR : r;
 								//console.log(itemScales[i](d[index]), maxR);
 								var x = cx + r * Math.cos(2 * Math.PI * i / items);
 								var y = cy + r * Math.sin(2 * Math.PI * i / items);
@@ -328,7 +436,7 @@
 									.attr("fill", "rgb(255,255,255,0.25)")
 									.attr("points", path)
 								.append("svg:title")
-									.text(d[2]);
+									.text(d[4]);
 
 							//Donut
 							var tempData = [d[6], d[7], d[8]]; 
@@ -340,47 +448,37 @@
 									.attr('fill', function(d, i){return macroColors[i];})
 								.append("svg:title")
 									.text(function(d, i){return macroNames[i];});
+								
+							});
+					
 							
-						  });
-				/*shape = container.append("g")
-						.attr("class", "shape")
-						.attr("display", "none")
-					.selectAll("circle")
-						.data(dataset)
-						.enter()
-					.append("circle")
-						.attr("cx",function(d) { return xScale(d[0]);})
-						.attr("cy",function(d) { return yScale(d[1]);})
-						.attr("r", 1)
-						.attr("fill", "black");*/
-						
-					/* svg.selectAll("text")
-					.data(dataset)
-					.enter()
-					.append("text")
-					.text(function(d) {
-							return d[0] + "," + d[1];
-					})
-					.attr("x",function(d) {
-							return xScale(d[0]);
-					})
-					.attr("y",function(d) {
-							return yScale(d[1]);
-					})
-					.attr("font-family", "sans-serif")
-					.attr("font-size", "11px")
-					.attr("fill", "red"); */
-					
-									
-					/*svg.append("g")
-						.attr("class", "axis")
-						.attr("transform", "translate("+ (-size) +"," + (h - padding +size) + ")")
-						.call(xAxis);
-					
-					svg.append("g")
-						.attr("class", "axis")
-						.attr("transform", "translate("+ (padding-size) +","+ (size) +")")
-						.call(yAxis);*/
+				/* svg.selectAll("text")
+				.data(dataset)
+				.enter()
+				.append("text")
+				.text(function(d) {
+						return d[0] + "," + d[1];
+				})
+				.attr("x",function(d) {
+						return xScale(d[0]);
+				})
+				.attr("y",function(d) {
+						return yScale(d[1]);
+				})
+				.attr("font-family", "sans-serif")
+				.attr("font-size", "11px")
+				.attr("fill", "red"); */
+				
+								
+				/*svg.append("g")
+					.attr("class", "axis")
+					.attr("transform", "translate("+ (-size) +"," + (h - padding +size) + ")")
+					.call(xAxis);
+				
+				svg.append("g")
+					.attr("class", "axis")
+					.attr("transform", "translate("+ (padding-size) +","+ (size) +")")
+					.call(yAxis);*/
 			}
 		}
 
