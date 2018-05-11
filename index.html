@@ -157,7 +157,7 @@
 			
 			//Phase2 variables
 			//Donut
-			var itemX = 4;
+			var itemX = 8;
 			var padAngle = 0.05;
 			var padRadius = 0;
 			//Polygon, Lines
@@ -173,7 +173,7 @@
 
 			//Macro chart data/colors
 			var macroNames = ["Protein", "Fat", "Carb"];
-    		var macroColors = ["rgb(215,223,35)", "rgb(247,148,30)", "rgb(190,30,45)"];
+    		var macroColors = ["rgb(215,223,35)", "rgb(190,30,45)", "rgb(247,148,30)"];
 
 			//Create SVG element
 			var svg = d3.select(".screen")
@@ -227,7 +227,7 @@
 					var index = i+9;
 					//itemScales[i] = d3.max(dataset, function(d) { return d[index]; });
 					itemScales[i] = d3.scaleLinear()
-				.domain([0, d3.max(dataset, function(d) { return d[index]; })])
+				.domain([0, 2*(d3.mean(dataset, function(d) { return d[index]; })+d3.deviation(dataset, function(d) { return d[index]; }))])
 				.range([0, 1]);
 					//console.log(itemScales[i]);
 				}
@@ -262,8 +262,9 @@
 					.append("svg:title")
 						.text(function(d) { return d[2]; });
 						
+				var strokeColor = "white";
 				//Draw shapes
-				/*shape = container.append("g")
+				shape = container.append("g")
 						.attr("class", "shape")
 						.attr("display", "none")
 					.selectAll("g")
@@ -287,18 +288,6 @@
 								.cornerRadius(padRadius)
 								.padAngle(padAngle);
 							
-
-							//Donut
-							var tempData = [d[6], d[7], d[8]]; 
-							d3.select(this).selectAll('path')
-									.data(d3.pie().sort(null)(tempData))
-									.enter()
-								.append('path')
-									.attr('d', arc)
-									.attr('fill', function(d, i){return macroColors[i];})
-								.append("svg:title")
-									.text(d[2]);
-							
 							//Lines
 							path = "";
 							var innerR = donutW/2;
@@ -309,9 +298,9 @@
 								var cx = 0, cy = 0;
 								
 								var maxR = elSize/2;
-								//var r = ((itemScales[i](d[index]))*maxR)+innerR;
-								var r = d[index]+innerR;
-								r = (r>2) ? 2 : r;
+								var r = ((itemScales[i](d[index]))*maxR)+innerR;
+								//var r = d[index]+innerR;
+								//r = (r>2) ? 2 : r;
 								//console.log(itemScales[i](d[index]), maxR);
 								var x = cx + r * Math.cos(2 * Math.PI * i / items);
 								var y = cy + r * Math.sin(2 * Math.PI * i / items);
@@ -329,19 +318,30 @@
 										.attr("x2", x)
 										.attr("y2", y)
 										.attr('stroke-width', 0.01)
-										.attr("stroke", "black");
+										.attr("stroke", strokeColor);
 							}
 							//Polygon
 							path = path.substring(0, path.length-2);
 							var polygon = el.append("polygon")
 									.attr('stroke-width', 0.01)
-									.attr("stroke", "black")
-									.attr("fill", "none")
+									.attr("stroke", strokeColor)
+									.attr("fill", "rgb(255,255,255,0.25)")
 									.attr("points", path)
 								.append("svg:title")
 									.text(d[2]);
+
+							//Donut
+							var tempData = [d[6], d[7], d[8]]; 
+							d3.select(this).selectAll('path')
+									.data(d3.pie().sort(null)(tempData))
+									.enter()
+								.append('path')
+									.attr('d', arc)
+									.attr('fill', function(d, i){return macroColors[i];})
+								.append("svg:title")
+									.text(function(d, i){return macroNames[i];});
 							
-						  });*/
+						  });
 				/*shape = container.append("g")
 						.attr("class", "shape")
 						.attr("display", "none")
