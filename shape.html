@@ -1,0 +1,79 @@
+<html>
+<head>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+</head>
+<body onload="draw()">
+  <button onclick="draw()">New</button><br>
+<script>
+  function draw(){
+    var w = 500, h = 500, t = 50, items = 11, angleProgress = 360/(items+1), cx = w/2, cy = h/2, path = "";
+    var innerR = 50, finalT = t+100;
+    var dataset = [[10, 20, 30], [40, 50, 60], [70, 80, 90]];
+    var donutColors = ["black", "#F19CA2", "#EDF8B1"];
+
+    var donutW = 100;
+    var donutH = 100;
+    var radius = Math.min(donutW, donutH) / 2;
+    var donutWidth = 30;
+    var padAngle = 0.05;
+    var padRadius = 3;
+    
+   	d3.select("svg").remove();
+    var container = d3.select("body").append("svg")
+					.attr("width", 1000)
+          .attr("height", 1000)
+        .append('g');
+
+    var arc = d3.arc()
+        .innerRadius(radius - donutWidth)
+        .outerRadius(radius)
+        .cornerRadius(padRadius)
+        .padAngle(padAngle);
+
+    var pie = d3.pie()
+        .value(function(d) { return d[1]; })
+        .sort(null);
+    
+    var gs = container.append("g")
+      .attr("width", w)
+      .attr("height", h);
+
+    for(var i = 0; i < items; i++) {
+    
+      var r = Math.floor((Math.random() * (w/2-finalT)) + finalT);
+      var x = cx + r * Math.cos(2 * Math.PI * i / items);
+      var y = cy + r * Math.sin(2 * Math.PI * i / items);
+      var innerX = cx + innerR * Math.cos(2 * Math.PI * i / items);
+      var innerY = cy + innerR * Math.sin(2 * Math.PI * i / items);
+      path = path.concat(x+","+y+", "); 
+      
+      var line = gs.append("line")
+        .attr("x1", innerX)
+        .attr("y1", innerY)
+        .attr("x2", x)
+        .attr("y2", y)
+        .attr("stroke", "black");
+    }
+    
+    path = path.substring(0, path.length-2);
+    var polygon = gs.append("polygon")
+        .style("stroke", "black")
+        .style("fill", "none")
+        .attr("points", path);
+    
+    var chart = gs.append("g")
+      .attr("transform", 'translate(' + w/2 +
+      ',' + h/2 + ')')
+      .attr("width", donutW)
+      .attr("height", donutH);    
+      
+    var path = chart.selectAll('path')
+        .data(pie(dataset))
+        .enter()
+        .append('path')
+        .attr('d', arc)
+        .attr('fill', function(d, i){return donutColors[i];});
+  }
+</script>
+</body>
+</html>
