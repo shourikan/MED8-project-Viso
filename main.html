@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+			<title>D3 Page Template</title>
+			<script type="text/javascript" src="scripts\d3.js"></script>
+			<script type="text/javascript" src="scripts\read-csv.js"></script>
+			<link rel="stylesheet" type="text/css" href="styles\semantic.css" />
+			<!--<link rel="stylesheet" href="style.css">-->
+			<style type="text/css">
+				/*style of class axis*/	
+				body { margin:0;position:fixed;top:0;right:0;bottom:0;left:0; }
+				svg{
+					display: block;
+				}
+				.screen{
+					position:fixed;
+					display: flex;
+					align-items: center;
+					width:100%;
+					height:100%
+				}
+				.foil{
+					position: fixed;
+					z-index: 99999;
+					top:0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					padding: 0;
+					margin: 0;
+				}
+				.searchBar{
+					position: fixed;
+					/*max-width: 200px;*/
+					/*border: 1px solid white;*/
+					top: 0;
+					right: 0;
+				}
+				.searchHints{
+					position: fixed;
+					max-height: 400px;
+					overflow: auto;
+					/*max-width: 200px;*/
+					/*border: 1px solid white;*/
+					top: 40px;
+					right: 0;
+				}
+				.searchHints::-webkit-scrollbar { 
+					display: none; 
+				}
+				.testButton{
+					position: fixed;
+					top: 0;
+					right: 500px;
+				}
+				.checkboxmenu{
+					font-size: 13px;
+					position: fixed;
+    				left: 0;
+					width: 250px; 
+					height:100%;
+					background-color: rgba(163, 163, 163, 0.795);
+				}
+				.checkboxmenubuttons{
+					position: relative;
+					top: 50px;
+					margin-left: 10px;
+				}
+				.catBox{
+					/*Checkboxes*/
+				}
+				.colorBox{
+					display: inline-block;
+					border: 1px solid black;
+					width: 12px;
+					height: 12px;
+				}
+				input[type=text] {
+					width: 130px;
+					height: 40px;
+					box-sizing: border-box;
+					border: 1px solid #cccccc6b;
+					border-radius: 4px;
+					font-size: 16px;
+					color: white;
+					background-color: rgba(180, 180, 180, 0);
+					background-image: url('images/searchicon.png');
+					background-size: 21px 21px;
+					background-position: 10px; 
+					background-repeat: no-repeat;
+					padding: 12px 20px 12px 40px;
+					-webkit-transition: width 0.4s ease-in-out;
+					transition: width 0.4s ease-out;
+    				animation: blinker 1s cubic-bezier(0.4, 0, 1, 1) infinite;
+				}
+				input[type=text]:focus {
+					width: 200px;
+					animation: none;
+				}
+				@keyframes blinker {
+					50% {
+						border: 1px solid rgba(180, 180, 180, 0.24);
+					}
+				}
+				.hintBox{
+
+				}
+				.hint{
+					position: relative;
+					min-width: 200px;
+					height: 40px;
+					box-sizing: border-box;
+					border: 1px solid #cccccc6b;
+					border-radius: 0;
+					font-size: 14px;
+					color: white;
+					background-color: rgba(180, 180, 180, 0.4);
+					cursor: pointer;
+					padding: 12px 20px 12px 40px;
+					animation: side 0.5s ease-in-out;
+				}
+				.hint:hover{
+					background-color: rgba(180, 180, 180, 0.5);
+				}
+				@keyframes side {
+					0% {left: 100%;}
+					100% {left: 0%;}
+				}
+				
+			</style>
+	</head>
+	<body onload='test("https://raw.githubusercontent.com/shourikan/Viso/master/final.tsv");'>
+		<!--
+			### Checkbox menu ###
+		-->
+		<div id="foil" class="foil">
+			<div class="ui segment" style="height:100%;width:100%;background-color:rgba(255, 255, 255, 0.05);border:none;">
+				<div class="ui active dimmer">
+					<div class="ui text loader">Loading</div>
+				</div>
+				<p>Loading</p>
+			</div>
+		</div>
+		
+
+		<div class="screen">
+			<!--<button class="testButton" onclick="addSuggestion(25);">Add</button>-->
+			<div class="searchBar">
+				<input type="text" name="search" placeholder="Search..." onkeydown="keyPress(this, event);">
+			</div>
+			<div id="searchHints" class="searchHints">
+				
+			</div>
+			<div class="checkboxmenu">
+				<div class="checkboxmenubuttons">
+					<div class="colorBox" style="background-color:#FFFFD9"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c6" value="c6"> Cereal Grains and Pasta<br>
+					<div class="colorBox" style="background-color:#EDF8B1"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c2" value="c2"> Baked Products<br>
+					<div class="colorBox" style="background-color:#C7E9B4"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c5" value="c5"> Breakfast Cereals<br>
+					<div class="colorBox" style="background-color:#7FCDBB"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c4" value="c4"> Beverages<br>
+					<div class="colorBox" style="background-color:#FBF484"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c11" value="c11"> Fruits and Fruit Juices<br><br>
+
+					<div class="colorBox" style="background-color:#A5D3E6"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c21" value="c21"> Soups, Sauces, and Gravies<br>
+					<div class="colorBox" style="background-color:#1D91C0"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c7" value="c7"> Dairy and Egg Products<br>
+					<div class="colorBox" style="background-color:#253494"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c10" value="c10"> Finfish and Shellfish Products<br><br>
+
+					<div class="colorBox" style="background-color:#F4CDA5"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c19" value="c19"> Sausages and Luncheon Meats<br>
+					<div class="colorBox" style="background-color:#FEC44F"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c17" value="c17"> Poultry Products<br>
+					<div class="colorBox" style="background-color:#FF5729"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c12" value="c12"> Lamb, Veal, and Game Products<br>
+					<div class="colorBox" style="background-color:#CC4C02"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c3" value="c3"> Beef Products<br>
+					<div class="colorBox" style="background-color:#993404"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c16" value="c16"> Pork Products<br><br>
+
+					<div class="colorBox" style="background-color:#00BDAA"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c13" value="c13"> Legumes and Legume Product<br>
+					<div class="colorBox" style="background-color:#009494"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c22" value="c22"> Spices and Herbs<br>
+					<div class="colorBox" style="background-color:#00585E"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c9" value="c9"> Fats and Oils<br>
+					<div class="colorBox" style="background-color:#004E2A"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c24" value="c24">  Vegetables and Vegetable Products<br>
+					<div class="colorBox" style="background-color:#081D58"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c15" value="c15"> Nut and Seed Products<br><br>
+
+					<div class="colorBox" style="background-color:#F8D7D0"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c23" value="c23"> Sweets<br>
+					<div class="colorBox" style="background-color:#F19CA2"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c1" value="c1"> Baby Foods<br>
+					<div class="colorBox" style="background-color:#9C4368"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c20" value="c20"> Snacks<br>
+					<div class="colorBox" style="background-color:#ED5276"></div><input onchange="filter(this)" class="catBox" type="checkbox" name="cat" id="c8" value="c8"> Fast Foods
+				</div>
+			</div>
+		</div>
+		
+		<!--
+			### D3 Script ###
+		-->
+		<script type="text/javascript">
+		var base;
+		var w = 1920;
+		var h = 1080;
+
+		function clearSuggestions(){
+			d3.select("#searchHints").html("");
+		}
+
+		function addSuggestion(id){
+			var searchHints = d3.select("#searchHints");
+			searchHints.append("div")
+					.attr("class", "hint")
+					.attr("id", id)
+					.attr("onclick", "checkId(this.id);")
+				.append("text")
+					.text(base[id][4]);
+		}
+
+		function loading(s){
+			var a = (s) ? "visible" : "hidden";
+			document.getElementById("foil").style.visibility = a;
+		}
+
+		function preset(content){
+			var val = parseInt(content.split("=")[1])-1;
+			var presets = [[1, 5, 6, 7, 9, 10, 11, 13, 15, 21, 24],[3, 5, 9, 10, 11, 13, 15, 22, 24],[2, 4, 5, 6, 7, 8, 11, 15, 19, 20, 21, 23],[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 15, 16, 17, 19, 20, 21, 22, 23, 24]];
+
+			for(var i = 0; i<presets[val].length; i++){
+				var el = document.getElementById("c"+presets[val][i]);
+				el.checked = true;
+				//console.log("checking el: "+i);
+				filter(el);
+			}
+		}
+
+		/*function reset(){
+			var nodes = d3.selectAll(".catBox").nodes().each(function(d){
+				d.
+				d.onchange()
+			});
+		}*/
+
+		function zoomTo(point){
+			var t = [2];
+			var scale = 337;
+			var cx = w/2;
+			var cy = h/2;
+			t[0] = cx-(point[0]*(scale));
+			t[1] = cy-(point[1]*(scale));
+			d3.select(".zoomer").attr("transform", "translate("+t[0]+","+t[1]+")scale("+scale+")");
+			swapPhase(2);
+		}
+
+		function keyPress(el, e){
+			var value = el.value;
+			if (e.keyCode == 13) {
+				//console.log(value);
+				el.value = "";
+				el.placeholder = checkName(value);
+			}
+			else if(e.keyCode == 27){
+				console.log('ESC');
+				el.value = "";
+				clearSuggestions();
+			}
+			/*else{
+				console.log('Other key');
+			}*/
+		}
+
+		function checkId(id){
+			var point = d3.select(".dot").select("[id='"+id+"']");
+			console.log(point);
+			if(point)
+				zoomTo([point.attr("cx"),point.attr("cy")]);
+			else
+				console.log("Id not found..");
+
+			clearSuggestions();
+		}
+
+		function checkName(name){
+			clearSuggestions();
+			var list = search(name);
+			
+			if(list.length > 0){
+				if(list.length == 1){
+					var point = d3.select("[id='"+list[0]+"']");
+					//console.log(point.attr("cx"), point.attr("cy"), base[list[0]][4], list[0]);
+					zoomTo([point.attr("cx"),point.attr("cy")]);
+					return "Found!";
+				}
+				else{
+					//console.log(list);
+					list.forEach(function(i){
+						addSuggestion(i);
+					});
+					return "Multiple..";
+				}
+			}
+			else{
+				return "Nothing..";
+			}
+			return "Error";
+			
+		}
+
+		function search(name){
+			var result = [];
+			base.forEach(function(el, i) {
+				if(el[4].includes(name))
+					result.push(i);
+			});
+			return result;
+		}
+
+		function filter(el){
+			var visible = (el.checked) ? "" : "none";
+			//console.log(el.value);
+			d3.select(".dot")
+				.selectAll("."+el.value)
+				.attr("display", visible);
+		}
+
+		function swapPhase(p){
+			var d = document.getElementsByClassName("dot")[0];
+			var s = document.getElementsByClassName("shape")[0];
+			if(p==1){
+				d.setAttribute("display", "");
+				s.setAttribute("display", "none");
+				phase = 1;
+			} else if (p == 2){
+				d.setAttribute("display", "none");
+				s.setAttribute("display", "");
+				phase = 2;
+			}
+		}
+
+		function drawChart(data){
+
+			if (data!=null){
+
+				base = data;
+
+				//Canvas variables
+				var scale = [1, 1000];
+
+				//Phase1 variables
+				var size = 1;
+				var padding = 30;
+				phase = 1;
+
+				
+				//Phase2 variables
+				//Donut
+				var itemX = 12;
+				var padAngle = 0.05;
+				var padRadius = 0;
+				//Polygon, Lines
+				var t = 0;
+				var items = 11;
+				var angleProgress = 360/(items+1);
+				var path = "";
+
+				//Food Categories
+				var categories = ["American Indian/Alaska Native Foods", "Baby Foods", "Baked Products", "Beef Products", "Beverages", "Breakfast Cereals", 
+				"Cereal Grains and Pasta", "Dairy and Egg Products", "Fast Foods", "Fats and Oils", "Finfish and Shellfish Products", "Fruits and Fruit Juices", "Lamb, Veal, and Game Products", "Legumes and Legume Products", "Meals, Entrees, and Side Dishes",
+				"Nut and Seed Products", "Pork Products", "Poultry Products", "Restaurant Foods", "Sausages and Luncheon Meats", "Snacks", "Soups, Sauces, and Gravies", "Spices and Herbs", "Sweets", "Vegetables and Vegetable Products"];
+
+				//Categories Colors
+				var colors = ["black", "#F19CA2", "#EDF8B1", "#CC4C02", "#7FCDBB", "#C7E9B4", 
+				"#FFFFD9", "#1D91C0", "#ED5276", "#00585E", "#253494", "#FBF484", "#FF5729", "#00BDAA", "black",
+				"#081D58", "#993404", "#FEC44F", "black", "#F4CDA5", "#9C4368", "#A5D3E6", "#009494", "#F8D7D0", "#004E2A"];
+
+				//Macro chart data/colors
+				var macroNames = ["Protein", "Fat", "Carb"];
+				var macroColors = ["rgb(215,223,35)", "rgb(190,30,45)", "rgb(247,148,30)"];
+
+				var zoom = d3.zoom().scaleExtent(scale).on("zoom", zoomF);
+
+				function zoomF(){
+					var k = d3.event.transform.k;
+					var x = d3.event.transform.x;
+					var y = d3.event.transform.y;
+
+					container.attr("transform", d3.event.transform);
+					
+					//Extracting scale
+					/*var scale = container.attr("transform").match(/\((.*?)\)/g)[1];
+					scale = scale.substring(1, scale.length-1);*/
+					//console.log(d3.event.transform.k);
+					if (k < 20 && phase == 2)
+						swapPhase(1);
+					else if (k >= 20 && phase == 1)
+						swapPhase(2);
+				}
+
+				//Create SVG element
+				var svg = d3.select(".screen")
+					.append("svg")
+						.attr("width", "100%")
+						.attr("height", "100%")
+					.append("g")
+						.call(zoom);
+
+				var rect = svg.append("rect")
+					.attr("width", w)
+					.attr("height", h)
+					.style("fill", "black")
+					.style("pointer-events", "all");
+
+				var container = svg.append("g")
+					.attr("class", "zoomer");
+
+				//Create donut properties
+				
+				
+
+				
+				var dataset = data;
+				
+				//Solution to negative values could be global shift of values by min value
+
+				var xScale = d3.scaleLinear()
+								.domain([d3.min(dataset, function(d) { return d[0]; }), d3.max(dataset, function(d) { return d[0]; })])
+								.range([padding, w-padding*2]);
+				var yScale = d3.scaleLinear()
+								.domain([d3.min(dataset, function(d) { return d[1]; }), d3.max(dataset, function(d) { return d[1]; })])
+								.range([h-padding, padding]);
+
+				//Size scale
+				var itemSizeScale = d3.scaleLinear()
+				.domain([d3.min(dataset, function(d) { return d[5]; }), d3.max(dataset, function(d) { return d[5]; })])
+				.range([0, 1]);
+
+				//Shape scales
+				var itemScales = [items];
+				for (var i = 0; i<items; i++){
+					var index = i+9;
+					//itemScales[i] = d3.max(dataset, function(d) { return d[index]; });
+					itemScales[i] = d3.scaleLinear()
+				.domain([0, 2*(d3.mean(dataset, function(d) { return d[index]; })+d3.deviation(dataset, function(d) { return d[index]; }))])
+				.range([0, 1]);
+					//console.log(itemScales[i]);
+				}
+						
+				//Draw dots
+				dot = container.append("g")
+						.attr("class", "dot")
+						.attr("display", "")
+					.selectAll("circle")
+						.data(dataset)
+						.enter()
+					.append("circle")
+						.attr("cx",function(d) { return xScale(d[0]);})
+						.attr("cy",function(d) { return yScale(d[1]);})
+						.attr("r", 1)
+						.attr("fill", function(d) { return colors[d[3]]; })
+						.attr("id", function(d, i) { return i;})
+						.attr("class", function(d) { return "c"+d[3]; })
+						.attr("display", "none")
+					.append("svg:title")
+						.text(function(d) { return d[4]; });
+						
+				var strokeColor = "white";
+
+				//Draw shapes
+				shape = container.append("g")
+						.attr("class", "shape")
+						.attr("display", "none")
+					.selectAll("g")
+						.data(dataset)
+						.enter()
+					.append("g")
+						.attr('transform', function(d){return "translate("+xScale(d[0])+","+yScale(d[1])+")";})
+						.each(function (d) {
+							var el = d3.select(this);
+
+							var elSize = itemSizeScale(d[5])*itemX;
+							//console.log(elSize);
+							
+							var donutW = elSize/3;
+							var radius = donutW / 2;
+							var donutWidth = donutW / 6;
+
+							var arc = d3.arc()
+								.innerRadius(radius - donutWidth)
+								.outerRadius(radius)
+								.cornerRadius(padRadius)
+								.padAngle(padAngle);
+							
+							//Lines
+							path = "";
+							var innerR = radius;
+							var maxR = (elSize/2)-innerR;
+							//var finalT = t+innerR;
+							for(var i = 0; i < items; i++) {
+								
+								var index = i+9;
+								var cx = 0, cy = 0;
+								
+								
+								var r = ((itemScales[i](d[index]))*maxR)+innerR;
+								//var r = d[index]+innerR;
+								r = (r>maxR+innerR) ? maxR+innerR : r;
+								//console.log(itemScales[i](d[index]), maxR);
+								var x = cx + r * Math.cos(2 * Math.PI * i / items);
+								var y = cy + r * Math.sin(2 * Math.PI * i / items);
+								var innerX = cx + innerR * Math.cos(2 * Math.PI * i / items);
+								var innerY = cy + innerR * Math.sin(2 * Math.PI * i / items);
+
+								//console.log(cx, cy, maxR, r, x, y, innerX, innerY);
+								//console.log(d[index], itemScales[i], d[index]/itemScales[i]);
+								path = path.concat(x+","+y+", "); 
+								
+								//var widthS = ((elSize/itemX)*0.1);
+								var line = el.append("line")
+										.attr("x1", innerX)
+										.attr("y1", innerY)
+										.attr("x2", x)
+										.attr("y2", y)
+										.attr('stroke-width', 0.01)
+										.attr("stroke", strokeColor);
+							}
+
+							//Polygon
+							path = path.substring(0, path.length-2);
+							var polygon = el.append("polygon")
+									.attr('stroke-width', 0.01)
+									.attr("stroke", strokeColor)
+									.attr("fill", "rgb(255,255,255,0.25)")
+									.attr("points", path)
+								.append("svg:title")
+									.text(d[4]);
+
+							//Donut
+							var tempData = [d[6], d[7], d[8]]; 
+							d3.select(this).selectAll('path')
+									.data(d3.pie().sort(null)(tempData))
+									.enter()
+								.append('path')
+									.attr('d', arc)
+									.attr('fill', function(d, i){return macroColors[i];})
+								.append("svg:title")
+									.text(function(d, i){return macroNames[i];});
+								
+							});
+
+				preset(location.search.substr(1));
+				loading(false);
+			}
+		}
+
+		</script>
+	</body>
+</html>

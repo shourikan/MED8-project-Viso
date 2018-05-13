@@ -2,486 +2,124 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-			<title>D3 Page Template</title>
-			<script type="text/javascript" src="d3.js"></script>
-			<!--<link rel="stylesheet" href="style.css">-->
-			<style type="text/css">
-				/*style of class axis*/	
-				body { margin:0;position:fixed;top:0;right:0;bottom:0;left:0; }
-				svg{
-					display: block;
-				}
-				/*.axis path,
-				.axis line {
-					fill: none;
-					stroke: violet;
-					shape-rendering: crispEdges;
-				}
-				.axis text {
-					font-family: sans-serif;
-					font-size: 10px;
-				}*/
-				.screen{
-					position:fixed;
-					display: flex;
-					align-items: center;
-					width:100%;
-					height:100%
-				}
-				.searchBar{
-					position: fixed;
-					top: 0;
-					right: 0;
-				}
-				.checkboxmenu{
-					font-size: 13px;
-					position: fixed;
-    				left: 0;
-					width: 250px; 
-					height:100%;
-					background-color: rgba(163, 163, 163, 0.795);
-				}
-				.checkboxmenubuttons{
-					position: relative;
-					top: 50px;
-					margin-left: 10px;
-				}
-				.catBox{
-					/*Checkboxes*/
-				}
-				.colorBox{
-					display: inline-block;
-					border: 1px solid black;
-					width: 12px;
-					height: 12px;
-				}
-				input[type=text] {
-					width: 130px;
-					height: 40px;
-					box-sizing: border-box;
-					border: 1px solid #cccccc6b;
-					border-radius: 4px;
-					font-size: 16px;
-					color: white;
-					background-color: rgba(180, 180, 180, 0);
-					background-image: url('searchicon.png');
-					background-size: 21px 21px;
-					background-position: 10px; 
-					background-repeat: no-repeat;
-					padding: 12px 20px 12px 40px;
-					-webkit-transition: width 0.4s ease-in-out;
-					transition: width 0.4s ease-out;
-    				animation: blinker 1s cubic-bezier(0.4, 0, 1, 1) infinite;
-				}
-				input[type=text]:focus {
-					width: 200px;
-					animation: none;
-				}
-				@keyframes blinker {
-					50% {
-						border: 1px solid rgba(180, 180, 180, 0.24);
-					}
-				  }
-			</style>
+		<title>food story</title>
+		
+		<link rel="stylesheet" type="text/css" href="styles\style.css"/>
+		
+		 
+		
 	</head>
 	<body>
-		<!--
-			### CSV Script ###
-		-->
-		<script type="text/javascript" src="read-csv.js"></script>
-
-		<!--
-			### CSV File ###
-		-->
-		<fieldset id="load">
-			<form>
-				<label for="csvFileInput"> <strong>CSV File:</strong>
-				</label>
-				<button type="button" onclick="window.location = '/shape.html';">Load</button>
-			</form>
-			<br>
-			<div id="output" style="max-height:50px;overflow-y:scroll;border:green solid 1px">
-			</div>
-		</fieldset>
-		<!--
-			### Checkbox menu ###
-		-->
-
-		<div class="screen" style="display:none;">
-			<div class="searchBar">
-				<input type="text" name="search" placeholder="Search..." onkeypress="keyPress(this, event);">
-			</div>
-			<div class="checkboxmenu">
-				<div class="checkboxmenubuttons">
-					<div class="colorBox" style="background-color:#FFFFD9"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c6" checked> Cereal Grains and Pasta<br>
-					<div class="colorBox" style="background-color:#EDF8B1"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c2" checked> Baked Products<br>
-					<div class="colorBox" style="background-color:#C7E9B4"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c5" checked> Breakfast Cereals<br>
-					<div class="colorBox" style="background-color:#7FCDBB"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c4" checked> Beverages<br>
-					<div class="colorBox" style="background-color:#FBF484"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c11" checked> Fruits and Fruit Juices<br><br>
-
-					<div class="colorBox" style="background-color:#A5D3E6"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c21" checked> Soups, Sauces, and Gravies<br>
-					<div class="colorBox" style="background-color:#1D91C0"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c7" checked> Dairy and Egg Products<br>
-					<div class="colorBox" style="background-color:#253494"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c10" checked> Finfish and Shellfish Products<br><br>
-
-					<div class="colorBox" style="background-color:#F4CDA5"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c19" checked> Sausages and Luncheon Meats<br>
-					<div class="colorBox" style="background-color:#FEC44F"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c17" checked> Poultry Products<br>
-					<div class="colorBox" style="background-color:#FF5729"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c12" checked> Lamb, Veal, and Game Products<br>
-					<div class="colorBox" style="background-color:#CC4C02"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c3" checked> Beef Products<br>
-					<div class="colorBox" style="background-color:#993404"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c16" checked> Pork Products<br><br>
-
-					<div class="colorBox" style="background-color:#00BDAA"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c13" checked> Legumes and Legume Product<br>
-					<div class="colorBox" style="background-color:#009494"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c22" checked> Spices and Herbs<br>
-					<div class="colorBox" style="background-color:#00585E"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c9" checked> Fats and Oils<br>
-					<div class="colorBox" style="background-color:#004E2A"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c24" checked>  Vegetables and Vegetable Products<br>
-					<div class="colorBox" style="background-color:#081D58"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c15" checked> Nut and Seed Products<br><br>
-
-					<div class="colorBox" style="background-color:#F8D7D0"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c23" checked> Sweets<br>
-					<div class="colorBox" style="background-color:#F19CA2"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c1" checked> Baby Foods<br>
-					<div class="colorBox" style="background-color:#9C4368"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c20" checked> Snacks<br>
-					<div class="colorBox" style="background-color:#ED5276"></div><input onclick="filter(this)" class="catBox" type="checkbox" name="cat" value="c8" checked> Fast Foods
-				</div>
-			</div>
-		</div>
+	<div id="phase1">
+	
+		<div class="header">		
+		 
+        <img src="images\header2.png" style= " width: 100%"  />
+        
+    	 </div> 
+		<div class="space"> </div>
+	
+		<div class="center">		
+		 
+        <img src="images\planting1.png" style= " width: 45%" id="image" onclick="changeImage()" />
+        <p class="text" id="text">  Thousands of days ago, and millions of heartbeats . . . <p>
+        
+    	</div>  
+    	 
+    </div>
+    
+    <div id="phase2" style="display:none">
+    
+    	<p class="textPhase2H" id="textPhase2Headline">  HEY! Welcome in the world of food. <p>
+    	<p class="textPhase2" id="textPhase2"> This is a t-SNE map made from dataset of 8642 food points including
+		all the food you might have ever encounter. The points are colored by their food group,
+		and distributed across this map by their nutritional similarities.  <p>
 		
-		<!--
-			### D3 Script ###
-		-->
-		<script type="text/javascript">
-		var base;
-		var w = 1920;
-		var h = 1080;
+		
+		<button class="button" id="continue"> <img src="images\button.png" style= "width: 50px" /> </button>
 
-		function zoomTo(point){
-			var t = [2];
-			var scale = 22;
-			var cx = w/2;
-			var cy = h/2;
-			t[0] = cx-(point[0]*(scale));
-			t[1] = cy-(point[1]*(scale));
-			d3.select(".zoomer").attr("transform", "translate("+t[0]+","+t[1]+")scale("+scale+")");
-			swapPhase(2);
-		}
-
-		function keyPress(el, e){
-			var value = el.value;
-			if (e.keyCode == 13) {
-				//console.log(value);
-				el.value = "";
-				el.placeholder = checkName(value);
-			}
-			/*else{
-				console.log('Other key');
-			}*/
-		}
-
-		function checkName(name){
-			var list = search(name);
+    </div>
+    
+    <div id="phase3" style="display:none">
+    	<p class="textPhase2H" id="textPhase2Headline">  How do <span style="color:red"> you </span> look at the food? <p>
+    	<p class="textPhase2 n" id="textPhase2"> Before starting, choose how do you want to filter in this world.. <p>
+    	<div class="allbuttons">
+			<form action="main.html" method="GET">
+				<button class="charbutton" value="1" name="choice" id="sustenance"> <img src="images\char-06.png" style= "width: 200px" /> </button>
 			
-			if(list.length > 0){
-				if(list.length == 1){
-					var point = d3.select("[id='"+list[0]+"']");
-					//console.log(point.attr("cx"), point.attr("cy"), base[list[0]][4], list[0]);
-					zoomTo([point.attr("cx"),point.attr("cy")]);
-					return "Found!";
-				}
-				else{
-					console.log(list);
-					return "Console..";
-				}
+				<button class="charbutton" value="2" name="choice" id="healing"> <img src="images\char-07.png" style= "width: 200px" /> </button>
+
+				<button class="charbutton" value="3" name="choice" id="tasteOfPleasure"> <img src="images\char-08.png" style= "width: 200px" /> </button>
+
+				<button class="charbutton" value="4" name="choice" id="all"> <img src="images\char-09.png" style= "width: 200px" /> </button>
+			</form>
+		</div>
+		<div class="alltextboxes">
+			<p class="textBox"> <b>Animal surviving instinct</b> </br> -easily digestible </br>-nutritions per calories rich foods</br>
+-ready to eat pre-made products </br> </p>
+			<p class="textBox"> <b>Doctor’s picky approach</b> </br> -whole raw ingredients </br>-nutritions rich foods</br>
+-mostly low in calories </br>  </p>
+			<p class="textBox"> <b>Life of a hedonist</b> </br> -fast foods, sweets, snacks </br>-ready to eat premade
+products</br>  </p>
+			<p class="textBox textBoxlast"> <b>Unrestricted Foodie </b> </br> -meals that include all the food </br>  </p>
+		</div>
+    
+    </div>
+         
+   <script type="text/javascript">
+   
+        pos = 0;
+        link = [ "images/padastarseed.gif","images/nurish1.png", "images/starseed2.gif","images/intheworldfood.jpg","images/intheworldfood.jpg" ];
+        //texts=["a","h"];
+        texts =["A little star seed was born.","A kind caregiver took care of that little star, by nourishing its body. Starting with a sweet milk, the range of food was slowly expanded, with an aim to make it shine and grow healthily.","Soon that star grew old enough to choose on its own what she/he desire from the world of food. And especially, old enough to understand how to choose.", "This became unofficially her/his relationship with food. Huh, relationships are a big thing! How is that going to be?","eh" ];
+       
+        function changeImage(){
+        
+            document.getElementById("text").innerHTML="";
+            showText("text", texts[pos], 0, 50);  
+              
+            document.getElementById("image").src = link[pos];
+           pos++;
+            if (pos > 4) {
+           
+             document.getElementById('phase1').style.display='none' ;
+             document.getElementById('phase2').style.display='block' ;             
+             document.body.style.backgroundImage = 'url(images/allpoints.png)'; 
+
+            };
+        };
+   
+  		 var showText = function (target, message, index, interval) {   
+   
+  				if (index < message.length) {
+   				document.getElementById(target).append(message[index++]);
+   				setTimeout(function () { showText(target, message, index, interval); }, interval);
+   				
+ 				 }
 			}
-			else{
-				return "Nothing..";
-			}
-			return "Error";
-			
-		}
+		var action=1;
+ 		document.getElementById("continue").onclick=function() {
+ 		
+ 			if (action==3) {
+ 				document.getElementById('phase2').style.display='none' ;
+ 				document.getElementById('phase3').style.display='block' ;
+ 				}
+ 			
+ 			if (action==2) {
+ 		 		document.getElementById("textPhase2").innerHTML=document.getElementById("textPhase2").innerHTML + "<br/>"+"To raw frog legs.. ";
+ 				action ++;
+ 				}
+ 			if (action==1) {
+ 		 		document.getElementById("textPhase2").innerHTML=document.getElementById("textPhase2").innerHTML + "<br/>"+ "From chocolate pudding..";
+ 				action ++;
+ 				}
+ 				
+ 		}
+        
 
-		function search(name){
-			var result = [];
-			base.forEach(function(el, i) {
-				if(el[4].includes(name))
-					result.push(i);
-			});
-			return result;
-		}
-
-		function filter(el){
-			var visible = (el.checked) ? "" : "none";
-			console.log(el.value);
-			d3.select(".dot")
-				.selectAll("."+el.value)
-				.attr("display", visible);
-		}
-
-		function swapPhase(p){
-			var d = document.getElementsByClassName("dot")[0];
-			var s = document.getElementsByClassName("shape")[0];
-			if(p==1){
-				d.setAttribute("display", "");
-				s.setAttribute("display", "none");
-				phase = 1;
-			} else if (p == 2){
-				d.setAttribute("display", "none");
-				s.setAttribute("display", "");
-				phase = 2;
-			}
-		}
-
-		function drawChart(data){
-
-			if (data!=null){
-
-				base = data;
-
-				//Turn off loading window
-				document.getElementById("load").style.display = "none";
-				document.getElementsByClassName("screen")[0].style.display = "flex";
-
-				//Canvas variables
-				var scale = [1, 1000];
-
-				//Phase1 variables
-				var size = 1;
-				var padding = 30;
-				phase = 1;
-
-				
-				//Phase2 variables
-				//Donut
-				var itemX = 12;
-				var padAngle = 0.05;
-				var padRadius = 0;
-				//Polygon, Lines
-				var t = 0;
-				var items = 11;
-				var angleProgress = 360/(items+1);
-				var path = "";
-
-				//Food Categories
-				var categories = ["American Indian/Alaska Native Foods", "Baby Foods", "Baked Products", "Beef Products", "Beverages", "Breakfast Cereals", 
-				"Cereal Grains and Pasta", "Dairy and Egg Products", "Fast Foods", "Fats and Oils", "Finfish and Shellfish Products", "Fruits and Fruit Juices", "Lamb, Veal, and Game Products", "Legumes and Legume Products", "Meals, Entrees, and Side Dishes",
-				"Nut and Seed Products", "Pork Products", "Poultry Products", "Restaurant Foods", "Sausages and Luncheon Meats", "Snacks", "Soups, Sauces, and Gravies", "Spices and Herbs", "Sweets", "Vegetables and Vegetable Products"];
-
-				//Categories Colors
-				var colors = ["black", "#F19CA2", "#EDF8B1", "#CC4C02", "#7FCDBB", "#C7E9B4", 
-				"#FFFFD9", "#1D91C0", "#ED5276", "#00585E", "#253494", "#FBF484", "#FF5729", "#00BDAA", "black",
-				"#081D58", "#993404", "#FEC44F", "black", "#F4CDA5", "#9C4368", "#A5D3E6", "#009494", "#F8D7D0", "#004E2A"];
-
-				//Macro chart data/colors
-				var macroNames = ["Protein", "Fat", "Carb"];
-				var macroColors = ["rgb(215,223,35)", "rgb(190,30,45)", "rgb(247,148,30)"];
-
-				var zoom = d3.zoom().scaleExtent(scale).on("zoom", zoomF);
-
-				function zoomF(){
-					var k = d3.event.transform.k;
-					var x = d3.event.transform.x;
-					var y = d3.event.transform.y;
-
-					container.attr("transform", d3.event.transform);
-					
-					//Extracting scale
-					/*var scale = container.attr("transform").match(/\((.*?)\)/g)[1];
-					scale = scale.substring(1, scale.length-1);*/
-					//console.log(d3.event.transform.k);
-					if (k < 20 && phase == 2)
-						swapPhase(1);
-					else if (k >= 20 && phase == 1)
-						swapPhase(2);
-				}
-
-				//Create SVG element
-				var svg = d3.select(".screen")
-					.append("svg")
-						.attr("width", "100%")
-						.attr("height", "100%")
-					.append("g")
-						.call(zoom);
-
-				var rect = svg.append("rect")
-					.attr("width", w)
-					.attr("height", h)
-					.style("fill", "black")
-					.style("pointer-events", "all");
-
-				var container = svg.append("g")
-					.attr("class", "zoomer");
-
-				//Create donut properties
-				
-				
-
-				
-				var dataset = data;
-				
-				//Solution to negative values could be global shift of values by min value
-
-				var xScale = d3.scaleLinear()
-								.domain([d3.min(dataset, function(d) { return d[0]; }), d3.max(dataset, function(d) { return d[0]; })])
-								.range([padding, w-padding*2]);
-				var yScale = d3.scaleLinear()
-								.domain([d3.min(dataset, function(d) { return d[1]; }), d3.max(dataset, function(d) { return d[1]; })])
-								.range([h-padding, padding]);
-
-				//Size scale
-				var itemSizeScale = d3.scaleLinear()
-				.domain([d3.min(dataset, function(d) { return d[5]; }), d3.max(dataset, function(d) { return d[5]; })])
-				.range([0, 1]);
-
-				//Shape scales
-				var itemScales = [items];
-				for (var i = 0; i<items; i++){
-					var index = i+9;
-					//itemScales[i] = d3.max(dataset, function(d) { return d[index]; });
-					itemScales[i] = d3.scaleLinear()
-				.domain([0, 2*(d3.mean(dataset, function(d) { return d[index]; })+d3.deviation(dataset, function(d) { return d[index]; }))])
-				.range([0, 1]);
-					//console.log(itemScales[i]);
-				}
-
-				/*var rScale = d3.scaleLinear()
-								.domain([d3.min(dataset, function(d) { return d[1]; }), d3.max(dataset, function(d) { return d[1]; })])
-								.range([size, size]);*/														
-				
-								
-				/*var xAxis = d3.axisBottom()
-							.scale(xScale)
-							.ticks(9);
-							
-				var yAxis = d3.axisLeft()
-							.scale(yScale)
-							.ticks(5);*/
-						
-				//Draw dots
-				dot = container.append("g")
-						.attr("class", "dot")
-						.attr("display", "")
-					.selectAll("circle")
-						.data(dataset)
-						.enter()
-					.append("circle")
-						.attr("cx",function(d) { return xScale(d[0]);})
-						.attr("cy",function(d) { return yScale(d[1]);})
-						.attr("r", 1)
-						.attr("fill", function(d) { return colors[d[3]]; })
-						.attr("id", function(d, i) { return i;})
-						.attr("class", function(d) { return "c"+d[3]; })
-					.append("svg:title")
-						.text(function(d) { return d[4]; });
-						
-				var strokeColor = "white";
-				//Draw shapes
-				shape = container.append("g")
-						.attr("class", "shape")
-						.attr("display", "none")
-					.selectAll("g")
-						.data(dataset)
-						.enter()
-					.append("g")
-						.attr('transform', function(d){return "translate("+xScale(d[0])+","+yScale(d[1])+")";})
-						.each(function (d) {
-							var el = d3.select(this);
-
-							var elSize = itemSizeScale(d[5])*itemX;
-							//console.log(elSize);
-							
-							var donutW = elSize/3;
-							var radius = donutW / 2;
-							var donutWidth = donutW / 6;
-
-							var arc = d3.arc()
-								.innerRadius(radius - donutWidth)
-								.outerRadius(radius)
-								.cornerRadius(padRadius)
-								.padAngle(padAngle);
-							
-							//Lines
-							path = "";
-							var innerR = radius;
-							var maxR = (elSize/2)-innerR;
-							//var finalT = t+innerR;
-							for(var i = 0; i < items; i++) {
-								
-								var index = i+9;
-								var cx = 0, cy = 0;
-								
-								
-								var r = ((itemScales[i](d[index]))*maxR)+innerR;
-								//var r = d[index]+innerR;
-								r = (r>maxR+innerR) ? maxR+innerR : r;
-								//console.log(itemScales[i](d[index]), maxR);
-								var x = cx + r * Math.cos(2 * Math.PI * i / items);
-								var y = cy + r * Math.sin(2 * Math.PI * i / items);
-								var innerX = cx + innerR * Math.cos(2 * Math.PI * i / items);
-								var innerY = cy + innerR * Math.sin(2 * Math.PI * i / items);
-
-								//console.log(cx, cy, maxR, r, x, y, innerX, innerY);
-								//console.log(d[index], itemScales[i], d[index]/itemScales[i]);
-								path = path.concat(x+","+y+", "); 
-								
-								//var widthS = ((elSize/itemX)*0.1);
-								var line = el.append("line")
-										.attr("x1", innerX)
-										.attr("y1", innerY)
-										.attr("x2", x)
-										.attr("y2", y)
-										.attr('stroke-width', 0.01)
-										.attr("stroke", strokeColor);
-							}
-							//Polygon
-							path = path.substring(0, path.length-2);
-							var polygon = el.append("polygon")
-									.attr('stroke-width', 0.01)
-									.attr("stroke", strokeColor)
-									.attr("fill", "rgb(255,255,255,0.25)")
-									.attr("points", path)
-								.append("svg:title")
-									.text(d[4]);
-
-							//Donut
-							var tempData = [d[6], d[7], d[8]]; 
-							d3.select(this).selectAll('path')
-									.data(d3.pie().sort(null)(tempData))
-									.enter()
-								.append('path')
-									.attr('d', arc)
-									.attr('fill', function(d, i){return macroColors[i];})
-								.append("svg:title")
-									.text(function(d, i){return macroNames[i];});
-								
-							});
-					
-							
-				/* svg.selectAll("text")
-				.data(dataset)
-				.enter()
-				.append("text")
-				.text(function(d) {
-						return d[0] + "," + d[1];
-				})
-				.attr("x",function(d) {
-						return xScale(d[0]);
-				})
-				.attr("y",function(d) {
-						return yScale(d[1]);
-				})
-				.attr("font-family", "sans-serif")
-				.attr("font-size", "11px")
-				.attr("fill", "red"); */
-				
-								
-				/*svg.append("g")
-					.attr("class", "axis")
-					.attr("transform", "translate("+ (-size) +"," + (h - padding +size) + ")")
-					.call(xAxis);
-				
-				svg.append("g")
-					.attr("class", "axis")
-					.attr("transform", "translate("+ (padding-size) +","+ (size) +")")
-					.call(yAxis);*/
-			}
-		}
-
-		</script>
+   
+    </script>
+    
+		
 	</body>
 </html>
