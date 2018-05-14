@@ -191,8 +191,10 @@
 		var base;
 		var w = 1920;
 		var h = 1080;
-		var T = [3];
+		var T = [];
 		var Tsync = true;
+		var highlights = [];
+		
 
 		function clearSuggestions(){
 			d3.select("#searchHints").html("");
@@ -434,7 +436,7 @@
 				var zoom = d3.zoom().scaleExtent(scale).on("zoom", zoomF);
 
 				function zoomF(){
-					console.log(Tsync);
+					//console.log(Tsync);
 					if (!Tsync){
 						d3.event.transform.x = T[0];
 						d3.event.transform.y = T[1];
@@ -470,11 +472,6 @@
 				var container = svg.append("g")
 					.attr("class", "zoomer");
 
-				//Create donut properties
-				
-				
-
-				
 				var dataset = data;
 				
 				//Solution to negative values could be global shift of values by min value
@@ -503,10 +500,21 @@
 				}
 						
 				//Draw dots
-				dot = container.append("g")
+				var dot = container.append("g")
 						.attr("class", "dot")
-						.attr("display", "")
-					.selectAll("circle")
+						.attr("display", "");
+
+				var radiusCircle = d3.select(".dot").append("circle")
+						.attr("cx", 10)
+						.attr("cy",10)
+						.attr("r", 10)
+						.attr("visibility", "hidden")
+						.style("stroke-dasharray", ("2, 0.5"))
+						.style("stroke", "rgba(255, 124, 0, 0.6)")
+						.style("stroke-width", "0.5")
+						.style("fill", "rgba(255, 124, 0, 0.34)");
+					
+				dot.selectAll("circle")
 						.data(dataset)
 						.enter()
 					.append("circle")
@@ -517,9 +525,57 @@
 						.attr("id", function(d, i) { return i;})
 						.attr("class", function(d) { return "c"+d[3]; })
 						.attr("display", "none")
+						.on("click", function(){
+
+							var el = d3.select(this);
+							var x = el.attr("cx");
+							var y = el.attr("cy");
+
+							//Show radius
+							radiusCircle.attr("cx", x)
+							.attr("cy", y)
+							.attr("visibility", "visible");
+
+							//Clear highlights
+							highlights.forEach(function(i){
+								d3.select("[id='"+i+"']")
+										.style("stroke", "none");
+								highlights = [];
+							});
+
+							//Find 3 nodes
+							var nodes = d3.select(".dot").selectAll("circle[display='']").each(function(){
+								var node = d3.select(this);
+								var deltaX = node.attr("cx")-x;
+								var deltaY = node.attr("cy")-y;
+								var distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+								var radius = radiusCircle.attr("r");
+								if(highlights.length<3 && radius>=distance && el.attr("id")!=node.attr("id") && el.attr("class")!=node.attr("class")){
+									var unique = true;
+									highlights.forEach(function(i){
+										if(node.attr("class")==d3.select("[id='"+i+"']").attr("class"))
+											unique = false;
+									});
+									if(unique){
+										highlights.push(node.attr("id"));
+									}
+								}
+							});
+
+							highlights.forEach(function(i){
+								d3.select("[id='"+i+"']")
+										.style("stroke", "green")
+										.style("stroke-width", "0.3");
+							});
+							
+						})
 					.append("svg:title")
 						.text(function(d) { return d[4]; });
-						
+
+				function showRadius(el){
+					
+				}
+
 				var strokeColor = "white";
 
 				//Draw shapes
