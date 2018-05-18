@@ -186,6 +186,7 @@
 		var T = [];
 		var Tsync = true;
 		var highlights = [];
+		var texts = [];
 		
 
 		function clearSuggestions(){
@@ -256,6 +257,9 @@
 		}
 
 		function transition(end) {
+
+			Tsync = false;
+
 			var svg = d3.select(".zoomer");
 			var center = [w / 2, h / 2];
 			var start = getAim();
@@ -272,7 +276,6 @@
 			function transform(p) {
 			  var k = p[2];
 			  T = [center[0] - p[0] * k, center[1] - p[1] * k, k];
-			  Tsync = false;
 			  return "translate(" + (center[0] - p[0] * k) + "," + (center[1] - p[1] * k) + ")scale(" + k + ")";
 			}
 		  }
@@ -336,7 +339,8 @@
 				if(list.length == 1){
 					var point = d3.select("[id='"+list[0]+"']");
 					//console.log(point.attr("cx"), point.attr("cy"), base[list[0]][4], list[0]);
-					zoomTo([point.attr("cx"),point.attr("cy")]);
+					//zoomTo([point.attr("cx"),point.attr("cy")]);
+					checkId(list[0]);
 					return "Found!";
 				}
 				else{
@@ -369,6 +373,43 @@
 			d3.select(".dot")
 				.selectAll("."+el.value)
 				.attr("display", visible);
+			d3.select(".shape")
+				.selectAll("."+el.value)
+				.attr("display", visible);
+			//var scale = getAim()[2];
+			//drawScreen(scale);
+		}
+
+		function drawScreen(scale){
+			var phase = (scale >= 40) ? 2 : 1;
+			var target = "circle";
+			d3.select(".dot").selectAll(target).each(function(){
+				var point = d3.select(this);
+				var cx = point.attr("cx");
+				var cy = point.attr("cy");
+				var aim = getAim();
+				var deltaX = Math.abs(aim[0]-cx);
+				var deltaY = Math.abs(aim[1]-cy);
+				var scaledW = w/2/scale;
+				var scaledH = h/2/scale;
+				
+				if(deltaX <= scaledW && deltaY <= scaledH){
+					if(phase == 1){
+						if(point.attr("display", ""))
+							point.attr("visibility", "visible");
+						else
+							point.attr("visibility", "hidden");
+					}
+					else{
+						var shape = d3.select(".shape").select("[id='"+point.attr("id")+"']");
+						if(shape.attr("display", ""))
+							shape.attr("visibility", "visible");
+						else
+							shape.attr("visibility", "hidden");
+					}
+				}
+			});
+
 		}
 
 		function swapPhase(p){
@@ -409,7 +450,7 @@
 				var t = 0;
 				var items = 11;
 				var angleProgress = 360/(items+1);
-				var path = "";
+				var path = [];
 
 				//Food Categories
 				var categories = ["Beef Products", "Beverages", "Breakfast Cereals", 
@@ -440,6 +481,8 @@
 
 						var k = d3.event.transform.k;
 
+						//drawScreen(k);
+
 						if (k < 40 && phase == 2)
 							swapPhase(1);
 						else if (k >= 40 && phase == 1)
@@ -458,7 +501,7 @@
 				var rect = svg.append("rect")
 					.attr("width", w)
 					.attr("height", h)
-					.style("fill", "black")
+					.style("fill", "white")
 					.style("pointer-events", "all");
 
 				var container = svg.append("g")
@@ -513,10 +556,12 @@
 						.attr("cx",function(d) { return xScale(d[0]);})
 						.attr("cy",function(d) { return yScale(d[1]);})
 						.attr("r", 1)
-						.attr("fill", function(d) { return colors[d[3]]; })
+						.attr("fill", function(d) { return colors[d[3]-1]; })
 						.attr("id", function(d, i) { return i;})
 						.attr("class", function(d) { return "c"+d[3]; })
 						.attr("display", "none")
+						.attr("name", function(d) { return d[4]; })
+						//.attr("visibility", "visible")
 						.on("click", function(){
 
 							var el = d3.select(this);
@@ -524,13 +569,31 @@
 							var y = el.attr("cy");
 
 							//Show radius
-							radiusCircle.attr("cx", x)
+							/*radiusCircle.attr("cx", x)
 							.attr("cy", y)
-							.attr("visibility", "visible");
+							.attr("visibility", "visible");*/
+
+							//Clear texts
+							texts.forEach(function(e){
+								dot.select("[id='t"+e+"']").remove();
+							});
+							texts = [];
+
+							//Texts
+							texts.push(el.attr("id"));
+							var n = (el.attr("name").length > 15) ? el.attr("name").substr(0,15)+".." : el.attr("name");
+							dot.append("text")
+									.attr("id", "t"+el.attr("id"))
+									.attr("x", x-5)
+									.attr("y", y-1.5)
+									.text(n)
+									.attr("font-family", "sans-serif")
+									.attr("font-size", 1)
+									.attr("fill", "black");
 
 							//Clear highlights
 							highlights.forEach(function(i){
-								d3.select("[id='"+i+"']")
+								d3.select("[id='"+i[0]+"']")
 										.style("stroke", "none");
 								highlights = [];
 							});
@@ -541,8 +604,10 @@
 								var deltaX = node.attr("cx")-x;
 								var deltaY = node.attr("cy")-y;
 								var distance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
-								var radius = radiusCircle.attr("r");
-								if(highlights.length<3 && radius>=distance && el.attr("id")!=node.attr("id") && el.attr("class")!=node.attr("class")){
+								//var radius = radiusCircle.attr("r");
+								
+								//Radius (3 items)
+								/*if(highlights.length<3 && radius>=distance && el.attr("id")!=node.attr("id") && el.attr("class")!=node.attr("class")){
 									var unique = true;
 									highlights.forEach(function(i){
 										if(node.attr("class")==d3.select("[id='"+i+"']").attr("class"))
@@ -551,13 +616,73 @@
 									if(unique){
 										highlights.push(node.attr("id"));
 									}
+								}*/
+
+								//Closest (2 items)
+								if(el.attr("class")!=node.attr("class")){
+										var unique = true;
+										if(highlights.length < 2){
+											var bro;
+											//unique?
+											highlights.forEach(function(i){
+												if(node.attr("class")==d3.select("[id='"+i[0]+"']").attr("class"))
+													unique = false;
+											});
+											//push
+											if(unique){
+												highlights.push([node.attr("id"), distance]);
+												//console.log("pushing "+[node.attr("id"), distance]);
+											}
+											//replace class if min
+											else{
+												if(distance < highlights[0][1]){
+													//console.log("replacing "+ highlights[0] +" => "+[node.attr("id"), distance]);
+													highlights[0] = [node.attr("id"), distance];
+												}
+											}
+										}
+										else{
+											var replace;
+											//unique?
+											for(var i = 0; i<highlights.length; i++){
+												if(node.attr("class")==d3.select("[id='"+highlights[i][0]+"']").attr("class")){
+													unique = false;
+													replace = i;
+												}
+											}
+											//replace min
+											if(unique){
+												var max = (highlights[0][1] > highlights[1][1]) ? [0, highlights[0][1]] : [1, highlights[1][1]];
+												if(distance < max[1]){
+													//console.log("min old/new: "+max[1]+" => "+distance);
+													highlights[max[0]] = [node.attr("id"), distance];
+												}
+											}
+											//replace class if min
+											else{
+												if(distance < highlights[replace][1]){
+													//console.log("class min old/new: "+highlights[replace][1]+" => "+distance);
+													highlights[replace] = [node.attr("id"), distance];
+												}
+											}
+										}
 								}
 							});
 
 							highlights.forEach(function(i){
-								d3.select("[id='"+i+"']")
+								var e = d3.select("[id='"+i[0]+"']")
 										.style("stroke", "green")
 										.style("stroke-width", "0.3");
+								texts.push(i[0]);
+								var n = (e.attr("name").length > 15) ? e.attr("name").substr(0,14)+".." : e.attr("name");
+								dot.append("text")
+									.attr("id", "t"+i[0])
+									.attr("x", e.attr("cx")-5)
+									.attr("y", e.attr("cy")-1.5)
+									.text(n)
+									.attr("font-family", "sans-serif")
+									.attr("font-size", 1)
+									.attr("fill", "black");
 							});
 							
 						})
@@ -568,17 +693,22 @@
 					
 				}
 
-				var strokeColor = "white";
+				var strokeColor = "black";
 
 				//Draw shapes
-				shape = container.append("g")
+				var shape = container.append("g")
 						.attr("class", "shape")
-						.attr("display", "none")
-					.selectAll("g")
+						.attr("display", "none");
+
+				shape.selectAll("g")
 						.data(dataset)
 						.enter()
 					.append("g")
 						.attr('transform', function(d){return "translate("+xScale(d[0])+","+yScale(d[1])+")";})
+						.attr("class", function(d) { return "c"+d[3]; })
+						.attr("display", "none")
+						//.attr("visibility", "hidden")
+						.attr("id", function(d, i){ return i; })
 						.each(function (d) {
 							var el = d3.select(this);
 
@@ -596,10 +726,14 @@
 								.padAngle(padAngle);
 							
 							//Lines
-							path = "";
+							path = ["", ""];
+							var finalPath = "";
+							var mid = [];
+							var tempP = [];
 							var innerR = radius;
 							var maxR = (elSize/2)-innerR;
-							//var finalT = t+innerR;
+							var ground = 1.5;
+							
 							for(var i = 0; i < items; i++) {
 								
 								var index = i+9;
@@ -609,6 +743,7 @@
 								var r = ((itemScales[i](d[index]))*maxR)+innerR;
 								//var r = d[index]+innerR;
 								r = (r>maxR+innerR) ? maxR+innerR : r;
+								r *= ground;
 								//console.log(itemScales[i](d[index]), maxR);
 								var x = cx + r * Math.cos(2 * Math.PI * i / items);
 								var y = cy + r * Math.sin(2 * Math.PI * i / items);
@@ -617,7 +752,31 @@
 
 								//console.log(cx, cy, maxR, r, x, y, innerX, innerY);
 								//console.log(d[index], itemScales[i], d[index]/itemScales[i]);
-								path = path.concat(x+","+y+", "); 
+								finalPath = finalPath.concat(x+","+y+", ");
+								if (i<=4){
+									if(i==0){
+										path[0] = path[0].concat(x+","+y+", ");
+										tempP[0] = [x, y];
+									}
+									else if(i==4){
+										path[0] = path[0].concat(x+","+y);
+										tempP[1] = [x, y];
+									}
+									else
+										path[0] = path[0].concat(x+","+y+", ");
+								} 
+								else{
+									if(i==5){
+										path[1] = path[1].concat(x+","+y+", ");
+										tempP[2] = [x, y];
+									}
+									else if(i==10){
+										path[1] = path[1].concat(x+","+y);
+										tempP[3] = [x, y];
+									}
+									else
+										path[1] = path[1].concat(x+","+y+", ");
+								} 
 								
 								//var widthS = ((elSize/itemX)*0.1);
 								var line = el.append("line")
@@ -625,23 +784,52 @@
 										.attr("y1", innerY)
 										.attr("x2", x)
 										.attr("y2", y)
-										.attr('stroke-width', 0.01)
-										.attr("stroke", strokeColor);
+										.attr('stroke-width', 0.005)
+										.attr("stroke", "strokeColor")
+										.attr("opacity", "0.1");
 							}
 
 							//Polygon
-							path = path.substring(0, path.length-2);
-							var polygon = el.append("polygon")
-									.attr('stroke-width', 0.01)
+							/*path[0] = path[0].substring(0, path[0].length-2);
+							path[1] = path[1].substring(0, path[1].length-2);*/
+							finalPath = finalPath.substring(0, finalPath.length-2);
+
+							mid[0] = [tempP[3][0]+(tempP[0][0] - tempP[3][0])/2, tempP[3][1]+(tempP[0][1] - tempP[3][1])/2];
+							mid[1] = [tempP[2][0]+(tempP[1][0] - tempP[2][0])/2, tempP[2][1]+(tempP[1][1] - tempP[2][1])/2];
+							
+							path[0] = mid[0][0]+","+mid[0][1]+", ".concat(path[0]);
+							path[0] = path[0].concat(", "+mid[1][0]+","+mid[1][1]);
+							path[1] = mid[1][0]+","+mid[1][1]+", ".concat(path[1]);
+							path[1] = path[1].concat(", "+mid[0][0]+","+mid[0][1]);
+
+							//Final shape
+							var polygonMin = el.append("polygon")
+									.attr('stroke-width', 0.005)
 									.attr("stroke", strokeColor)
-									.attr("fill", "rgb(255,255,255,0.25)")
-									.attr("points", path)
+									.attr("fill", "none")
+									.attr("points", finalPath)
 								.append("svg:title")
-									.text(d[4]);
+									.text("minerals");
+							//Vitamins
+							var polygonVit = el.append("polygon")
+									.attr('stroke-width', 0.01)
+									.attr("stroke", "none")
+									.attr("fill", "#673ab763")
+									.attr("points", path[0])
+								.append("svg:title")
+									.text("vitamins");
+							//Minerals
+							var polygonMin = el.append("polygon")
+									.attr('stroke-width', 0.01)
+									.attr("stroke", "none")
+									.attr("fill", "#3a80b763")
+									.attr("points", path[1])
+								.append("svg:title")
+									.text("minerals");
 
 							//Donut
 							var tempData = [d[6], d[7], d[8]]; 
-							d3.select(this).selectAll('path')
+							el.selectAll('path')
 									.data(d3.pie().sort(null)(tempData))
 									.enter()
 								.append('path')
@@ -649,10 +837,32 @@
 									.attr('fill', function(d, i){return macroColors[i];})
 								.append("svg:title")
 									.text(function(d, i){return macroNames[i];});
+
+							//Class color
+							el.append("circle")
+									.attr("cx", 0)
+									.attr("cy", 0)
+									.attr("r", (radius - donutWidth) * 0.75)
+									.attr("stroke", colors[d[3]-1])
+									.attr("stroke-width", 0.075)
+									.attr("fill", "none")
+								.append("svg:title")
+									.text(categories[d[3]-1]);
+
+							//Text
+							var n = (d[4].length > 15) ? d[4].substr(0,14)+".." : d[4];
+							el.append("text")
+									.attr("x", -0.5)
+									.attr("y", -0.5)
+									.text(n)
+									.attr("font-family", "sans-serif")
+									.attr("font-size", 0.25)
+									.attr("fill", "black");
 								
 							});
 
 				preset(location.search.substr(1));
+				//drawScreen(1);
 				loading(false);
 			}
 		}
