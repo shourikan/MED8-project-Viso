@@ -83,7 +83,7 @@
 					border: 1px solid #cccccc6b;
 					border-radius: 4px;
 					font-size: 16px;
-					color: white;
+					color: black;
 					background-color: rgba(180, 180, 180, 0);
 					background-image: url('images/searchicon.png');
 					background-size: 21px 21px;
@@ -111,7 +111,7 @@
 					border: 1px solid #cccccc6b;
 					border-radius: 0;
 					font-size: 14px;
-					color: white;
+					color: black;
 					background-color: rgba(180, 180, 180, 0.4);
 					cursor: pointer;
 					padding: 12px 20px 12px 40px;
@@ -180,13 +180,25 @@
 			### D3 Script ###
 		-->
 		<script type="text/javascript">
+		var phase = 1;
 		var base;
 		var w = 1920;
 		var h = 1080;
-		var T = [];
-		var Tsync = true;
 		var highlights = [];
 		var texts = [];
+		var zoom, container, svg, charts, xScale, yScale, itemSizeScale, itemScales,
+		categories, colors, macroColors, macroNames;
+
+		//Phase2 variables
+		//Donut
+		var itemX = 12;
+		var padAngle = 0.05;
+		var padRadius = 0;
+		//Polygon, Lines
+		var items = 11;
+		var angleProgress = 360/(items+1);
+		var path = [];
+		var strokeColor = "black";
 		
 
 		function clearSuggestions(){
@@ -220,13 +232,6 @@
 			}
 		}
 
-		/*function reset(){
-			var nodes = d3.selectAll(".catBox").nodes().each(function(d){
-				d.
-				d.onchange()
-			});
-		}*/
-
 		function zoomTo(point){
 			var t = [2];
 			var scale = 337;
@@ -239,14 +244,14 @@
 		}
 
 		function getTransform(){
-			var svg = d3.select(".zoomer");
-			var raw = svg.attr("transform");
+			var z = d3.select(".zoomer");
+			var raw = z.attr("transform");
 			var center = [w / 2, h / 2];
 			raw = (raw == null) ? ["(0, 0)", "(1)"] : raw.match(/\((.*?)\)/g);
 			var tf = raw[0].substring(1, raw[0].length-1).split(",");
 			var scale = parseFloat(raw[1].substring(1, raw[1].length-1));
 
-			return [tf[0], tf[1], scale];
+			return [parseFloat(tf[0]), parseFloat(tf[1]), scale];
 		}
 
 		function getAim(){
@@ -258,26 +263,12 @@
 
 		function transition(end) {
 
-			Tsync = false;
-
-			var svg = d3.select(".zoomer");
-			var center = [w / 2, h / 2];
-			var start = getAim();
-
-			var	x = d3.interpolateNumber(start[0], end[0]);
-			var	y = d3.interpolateNumber(start[1], end[1]);
-			var	k = d3.interpolateNumber(start[2], end[2]);
-
-			svg.transition()
-				.delay(250)
-				.duration(1000)
-				.attrTween("transform", function() { return function(t) { return transform([x(t), y(t), k(t)]); }; });
-		  
-			function transform(p) {
-			  var k = p[2];
-			  T = [center[0] - p[0] * k, center[1] - p[1] * k, k];
-			  return "translate(" + (center[0] - p[0] * k) + "," + (center[1] - p[1] * k) + ")scale(" + k + ")";
-			}
+			var t = d3.zoomIdentity
+                    .translate(w/2 - end[0]*end[2] , h/2 - end[1]*end[2])
+                    .scale(end[2]);
+			
+			
+    		svg.transition().duration(1000).call(zoom.transform, t);
 		  }
 
 		function keyPress(el, e){
@@ -300,11 +291,26 @@
 		function checkId(id){
 			var point = d3.select(".dot").select("[id='"+id+"']");
 			//console.log(point);
-			if(point){
+			if(point && point.attr("display") == ""){
 				if (getAim()[2] != 1){
 					//Out
 					swapPhase(1);
-					transition([getAim()[0], getAim()[1], 1])
+					var t = [d3.zoomIdentity
+							.translate(w/2 - getAim()[0] , h/2 - getAim()[1])
+							.scale(1), d3.zoomIdentity
+							.translate(w/2 - point.attr("cx") , h/2 -point.attr("cy"))
+							.scale(1),d3.zoomIdentity
+							.translate(w/2 - point.attr("cx")*337 , h/2 - point.attr("cy")*337)
+							.scale(337)];
+			
+					svg.transition()
+							.duration(1000)
+							.call(zoom.transform, t[0])
+						.transition()
+							.call(zoom.transform, t[1])
+						.transition()
+							.call(zoom.transform, t[2]);
+					/*transition([getAim()[0], getAim()[1], 1])
 					setTimeout(function(){
 						//Over
 						transition([point.attr("cx"), point.attr("cy"), 1]);
@@ -313,16 +319,27 @@
 							transition([point.attr("cx"), point.attr("cy"), 337]);
 							setTimeout(function(){swapPhase(2);}, 1500);
 						}, 1500);
-					}, 1500);
+					}, 1500);*/
 				}
 				else{
 					//Over
-					transition([point.attr("cx"), point.attr("cy"), 1]);
+					var t = [d3.zoomIdentity
+							.translate(w/2 - point.attr("cx") , h/2 - point.attr("cy"))
+							.scale(1), d3.zoomIdentity
+							.translate(w/2 - point.attr("cx")*337 , h/2 -point.attr("cy")*337)
+							.scale(337)];
+							
+					svg.transition()
+							.duration(1000)
+							.call(zoom.transform, t[0])
+						.transition()
+							.call(zoom.transform, t[1]);
+					/*transition([point.attr("cx"), point.attr("cy"), 1]);
 					setTimeout(function(){
 						//In
 						transition([point.attr("cx"), point.attr("cy"), 337]);
 						setTimeout(function(){swapPhase(2);}, 1500);
-					}, 1500);
+					}, 1500);*/
 				}	
 			}
 			else
@@ -380,8 +397,7 @@
 			//drawScreen(scale);
 		}
 
-		function drawScreen(scale){
-			var phase = (scale >= 40) ? 2 : 1;
+		/*function drawScreen(scale){
 			var target = "circle";
 			d3.select(".dot").selectAll(target).each(function(){
 				var point = d3.select(this);
@@ -410,6 +426,43 @@
 				}
 			});
 
+		}*/
+
+		function drawP2(){
+			
+			console.log("drawPhase2()");
+
+			var aim = getAim();
+			var boundX = [aim[0]-((w/aim[2])/2), aim[0]+((w/aim[2])/2)];
+			var boundY = [aim[1]-((h/aim[2])/2), aim[1]+((h/aim[2])/2)];
+			console.log(aim[2]); 
+
+			charts = svg.select(".shape").append("g");
+
+			drawCharts(boundX, boundY);
+
+			/*charts.append("line")
+					.attr("x1", boundX[0])
+					.attr("y1", boundY[0])
+					.attr("x2", boundX[1])
+					.attr("y2", boundY[1])
+					.attr('stroke-width', 1)
+					.attr("stroke", "black")
+					.attr("opacity", 1);
+			charts.append("line")
+					.attr("x1", boundX[1])
+					.attr("y1", boundY[0])
+					.attr("x2", boundX[0])
+					.attr("y2", boundY[1])
+					.attr('stroke-width', 1)
+					.attr("stroke", "black")
+					.attr("opacity", 1);*/
+
+		}
+
+		function clearCharts(){
+			if(charts!=null)
+				charts.remove();
 		}
 
 		function swapPhase(p){
@@ -418,8 +471,11 @@
 			if(p==1){
 				d.setAttribute("display", "");
 				s.setAttribute("display", "none");
+				clearCharts();
 				phase = 1;
 			} else if (p == 2){
+				clearCharts();
+				drawP2();
 				d.setAttribute("display", "none");
 				s.setAttribute("display", "");
 				phase = 2;
@@ -433,70 +489,51 @@
 				base = data;
 
 				//Canvas variables
-				var scale = [1, 1000];
+				var scale = [1, 350];
 
 				//Phase1 variables
 				var size = 1;
 				var padding = 30;
 				phase = 1;
 
-				
-				//Phase2 variables
-				//Donut
-				var itemX = 12;
-				var padAngle = 0.05;
-				var padRadius = 0;
-				//Polygon, Lines
-				var t = 0;
-				var items = 11;
-				var angleProgress = 360/(items+1);
-				var path = [];
-
 				//Food Categories
-				var categories = ["Beef Products", "Beverages", "Breakfast Cereals", 
+				categories = ["Beef Products", "Beverages", "Breakfast Cereals", 
 				"Cereal Grains and Pasta", "Dairy and Egg Products", "Fast Foods", "Finfish and Shellfish Products", "Fruits and Fruit Juices", "Legumes and Legume Products",
 				"Nut and Seed Products", "Pork Products", "Poultry Products", "Sausages and Luncheon Meats", "Snacks", "Spices and Herbs", "Sweets", "Vegetables and Vegetable Products"];
 
 				//Categories Colors
-				var colors = ["#CC4C02", "#7FCDBB", "#C7E9B4", 
+				colors = ["#CC4C02", "#7FCDBB", "#C7E9B4", 
 				"#FFFFD9", "#1D91C0", "#ED5276", "#253494", "#FBF484", "#00BDAA",
 				"#081D58", "#993404", "#FEC44F", "#F4CDA5", "#9C4368", "#009494", "#F8D7D0", "#004E2A"];
 
 				//Macro chart data/colors
-				var macroNames = ["Protein", "Fat", "Carb"];
-				var macroColors = ["rgb(215,223,35)", "rgb(190,30,45)", "rgb(247,148,30)"];
+				macroNames = ["Protein", "Fat", "Carb"];
+				macroColors = ["rgb(215,223,35)", "rgb(190,30,45)", "rgb(247,148,30)"];
 
-				var zoom = d3.zoom().scaleExtent(scale).on("zoom", zoomF);
+				zoom = d3.zoom().scaleExtent(scale).translateExtent([[0,0],[w,h]]).on("zoom", zoomF);
+				//zoom = d3.zoom().on("zoom", zoomF);
 
 				function zoomF(){
-					//console.log(Tsync);
-					if (!Tsync){
-						d3.event.transform.x = T[0];
-						d3.event.transform.y = T[1];
-						d3.event.transform.k = T[2];
-						Tsync = true; 
-					}
-					else{
-						container.attr("transform", d3.event.transform);
 
-						var k = d3.event.transform.k;
+					console.log(d3.event.transform.k);
 
-						//drawScreen(k);
+					container.attr("transform", d3.event.transform);
 
-						if (k < 40 && phase == 2)
-							swapPhase(1);
-						else if (k >= 40 && phase == 1)
-							swapPhase(2);
-					}
+					var k = d3.event.transform.k;
+
+					if (k < 40 && phase == 2)
+						swapPhase(1);
+					else if (k >= 40 && phase == 1)
+						swapPhase(2);
 				}
 
 				//Create SVG element
-				var svg = d3.select(".screen")
+				svg = d3.select(".screen")
 					.append("svg")
 						.attr("width", "100%")
 						.attr("height", "100%")
 					.append("g")
-						.call(zoom);
+					.call(zoom);
 
 				var rect = svg.append("rect")
 					.attr("width", w)
@@ -504,27 +541,27 @@
 					.style("fill", "white")
 					.style("pointer-events", "all");
 
-				var container = svg.append("g")
+				container = svg.append("g")
 					.attr("class", "zoomer");
 
 				var dataset = data;
 				
 				//Solution to negative values could be global shift of values by min value
 
-				var xScale = d3.scaleLinear()
+				xScale = d3.scaleLinear()
 								.domain([d3.min(dataset, function(d) { return d[0]; }), d3.max(dataset, function(d) { return d[0]; })])
 								.range([padding, w-padding*2]);
-				var yScale = d3.scaleLinear()
+				yScale = d3.scaleLinear()
 								.domain([d3.min(dataset, function(d) { return d[1]; }), d3.max(dataset, function(d) { return d[1]; })])
 								.range([h-padding, padding]);
 
 				//Size scale
-				var itemSizeScale = d3.scaleLinear()
+				itemSizeScale = d3.scaleLinear()
 				.domain([d3.min(dataset, function(d) { return d[5]; }), d3.max(dataset, function(d) { return d[5]; })])
 				.range([0, 1]);
 
 				//Shape scales
-				var itemScales = [items];
+				itemScales = [items];
 				for (var i = 0; i<items; i++){
 					var index = i+9;
 					//itemScales[i] = d3.max(dataset, function(d) { return d[index]; });
@@ -556,9 +593,11 @@
 						.attr("cx",function(d) { return xScale(d[0]);})
 						.attr("cy",function(d) { return yScale(d[1]);})
 						.attr("r", 1)
-						.attr("fill", function(d) { return colors[d[3]-1]; })
+						.attr("stroke", "gray")
+						.attr("stroke-width", "0.01")
+						.attr("fill", function(d) { return colors[d[3]]; })
 						.attr("id", function(d, i) { return i;})
-						.attr("class", function(d) { return "c"+d[3]; })
+						.attr("class", function(d) { return "c"+(d[3]+1); })
 						.attr("display", "none")
 						.attr("name", function(d) { return d[4]; })
 						//.attr("visibility", "visible")
@@ -689,23 +728,17 @@
 					.append("svg:title")
 						.text(function(d) { return d[4]; });
 
-				function showRadius(el){
-					
-				}
-
-				var strokeColor = "black";
-
 				//Draw shapes
 				var shape = container.append("g")
 						.attr("class", "shape")
 						.attr("display", "none");
 
-				shape.selectAll("g")
+				/*shape.selectAll("g")
 						.data(dataset)
 						.enter()
 					.append("g")
 						.attr('transform', function(d){return "translate("+xScale(d[0])+","+yScale(d[1])+")";})
-						.attr("class", function(d) { return "c"+d[3]; })
+						.attr("class", function(d) { return "c"+(d[3]+1); })
 						.attr("display", "none")
 						//.attr("visibility", "hidden")
 						.attr("id", function(d, i){ return i; })
@@ -785,13 +818,13 @@
 										.attr("x2", x)
 										.attr("y2", y)
 										.attr('stroke-width', 0.005)
-										.attr("stroke", "strokeColor")
+										.attr("stroke", strokeColor)
 										.attr("opacity", "0.1");
 							}
 
 							//Polygon
-							/*path[0] = path[0].substring(0, path[0].length-2);
-							path[1] = path[1].substring(0, path[1].length-2);*/
+							//path[0] = path[0].substring(0, path[0].length-2);
+							//path[1] = path[1].substring(0, path[1].length-2);
 							finalPath = finalPath.substring(0, finalPath.length-2);
 
 							mid[0] = [tempP[3][0]+(tempP[0][0] - tempP[3][0])/2, tempP[3][1]+(tempP[0][1] - tempP[3][1])/2];
@@ -847,7 +880,7 @@
 									.attr("stroke-width", 0.075)
 									.attr("fill", "none")
 								.append("svg:title")
-									.text(categories[d[3]-1]);
+									.text(categories[d[3]]);
 
 							//Text
 							var n = (d[4].length > 15) ? d[4].substr(0,14)+".." : d[4];
@@ -859,12 +892,176 @@
 									.attr("font-size", 0.25)
 									.attr("fill", "black");
 								
-							});
+							});*/
 
 				preset(location.search.substr(1));
 				//drawScreen(1);
 				loading(false);
 			}
+
+		}
+		
+		function drawCharts(boundX, boundY){
+			charts.selectAll("g")
+					.data(base)
+					.enter()
+					.filter(function(d) { return (xScale(d[0]) > boundX[0] && xScale(d[0]) < boundX[1] && yScale(d[1]) > boundY[0] && yScale(d[1]) < boundY[1]) })
+				.append("g")
+					.attr('transform', function(d){return "translate("+xScale(d[0])+","+yScale(d[1])+")";})
+					.attr("class", function(d) { return "c"+(d[3]+1); })
+					.attr("display", function(d){console.log("c"+(d[3])+": "+d3.select(".checkboxmenubuttons").select("#c"+(d[3]))); return (d3.select(".checkboxmenubuttons").select("#c"+(d[3])).property("checked")==true) ? "" : "none" ;})
+					.attr("id", function(d, i){ return i; })
+					.each(function (d) {
+						var el = d3.select(this);
+
+						var elSize = itemSizeScale(d[5])*itemX;
+						//console.log(elSize);
+						
+						var donutW = elSize/3;
+						var radius = donutW / 2;
+						var donutWidth = donutW / 6;
+
+						var arc = d3.arc()
+							.innerRadius(radius - donutWidth)
+							.outerRadius(radius)
+							.cornerRadius(padRadius)
+							.padAngle(padAngle);
+						
+						//Lines
+						path = ["", ""];
+						var finalPath = "";
+						var mid = [];
+						var tempP = [];
+						var innerR = radius;
+						var maxR = (elSize/2)-innerR;
+						var ground = 1.5;
+						
+						for(var i = 0; i < items; i++) {
+							
+							var index = i+9;
+							var cx = 0, cy = 0;
+							
+							
+							var r = ((itemScales[i](d[index]))*maxR)+innerR;
+							//var r = d[index]+innerR;
+							r = (r>maxR+innerR) ? maxR+innerR : r;
+							r *= ground;
+							//console.log(itemScales[i](d[index]), maxR);
+							var x = cx + r * Math.cos(2 * Math.PI * i / items);
+							var y = cy + r * Math.sin(2 * Math.PI * i / items);
+							var innerX = cx + innerR * Math.cos(2 * Math.PI * i / items);
+							var innerY = cy + innerR * Math.sin(2 * Math.PI * i / items);
+
+							//console.log(cx, cy, maxR, r, x, y, innerX, innerY);
+							//console.log(d[index], itemScales[i], d[index]/itemScales[i]);
+							finalPath = finalPath.concat(x+","+y+", ");
+							if (i<=4){
+								if(i==0){
+									path[0] = path[0].concat(x+","+y+", ");
+									tempP[0] = [x, y];
+								}
+								else if(i==4){
+									path[0] = path[0].concat(x+","+y);
+									tempP[1] = [x, y];
+								}
+								else
+									path[0] = path[0].concat(x+","+y+", ");
+							} 
+							else{
+								if(i==5){
+									path[1] = path[1].concat(x+","+y+", ");
+									tempP[2] = [x, y];
+								}
+								else if(i==10){
+									path[1] = path[1].concat(x+","+y);
+									tempP[3] = [x, y];
+								}
+								else
+									path[1] = path[1].concat(x+","+y+", ");
+							} 
+							
+							//var widthS = ((elSize/itemX)*0.1);
+							var line = el.append("line")
+									.attr("x1", innerX)
+									.attr("y1", innerY)
+									.attr("x2", x)
+									.attr("y2", y)
+									.attr('stroke-width', 0.005)
+									.attr("stroke", strokeColor)
+									.attr("opacity", "0.1");
+						}
+
+						//Polygon
+						//path[0] = path[0].substring(0, path[0].length-2);
+						//path[1] = path[1].substring(0, path[1].length-2);
+						finalPath = finalPath.substring(0, finalPath.length-2);
+
+						mid[0] = [tempP[3][0]+(tempP[0][0] - tempP[3][0])/2, tempP[3][1]+(tempP[0][1] - tempP[3][1])/2];
+						mid[1] = [tempP[2][0]+(tempP[1][0] - tempP[2][0])/2, tempP[2][1]+(tempP[1][1] - tempP[2][1])/2];
+						
+						path[0] = mid[0][0]+","+mid[0][1]+", ".concat(path[0]);
+						path[0] = path[0].concat(", "+mid[1][0]+","+mid[1][1]);
+						path[1] = mid[1][0]+","+mid[1][1]+", ".concat(path[1]);
+						path[1] = path[1].concat(", "+mid[0][0]+","+mid[0][1]);
+
+						//Final shape
+						var polygonMin = el.append("polygon")
+								.attr('stroke-width', 0.005)
+								.attr("stroke", strokeColor)
+								.attr("fill", "none")
+								.attr("points", finalPath)
+							.append("svg:title")
+								.text("minerals");
+						//Vitamins
+						var polygonVit = el.append("polygon")
+								.attr('stroke-width', 0.01)
+								.attr("stroke", "none")
+								.attr("fill", "#673ab763")
+								.attr("points", path[0])
+							.append("svg:title")
+								.text("vitamins");
+						//Minerals
+						var polygonMin = el.append("polygon")
+								.attr('stroke-width', 0.01)
+								.attr("stroke", "none")
+								.attr("fill", "#3a80b763")
+								.attr("points", path[1])
+							.append("svg:title")
+								.text("minerals");
+
+						//Donut
+						var tempData = [d[6], d[7], d[8]]; 
+						el.selectAll('path')
+								.data(d3.pie().sort(null)(tempData))
+								.enter()
+							.append('path')
+								.attr('d', arc)
+								.attr('fill', function(d, i){return macroColors[i];})
+							.append("svg:title")
+								.text(function(d, i){return macroNames[i];});
+
+						//Class color
+						el.append("circle")
+								.attr("cx", 0)
+								.attr("cy", 0)
+								.attr("r", (radius - donutWidth) * 0.75)
+								.attr("stroke", colors[d[3]])
+								.attr("stroke-width", 0.075)
+								.attr("fill", "none")
+							.append("svg:title")
+								.text(categories[d[3]]);
+
+						//Text
+						var n = (d[4].length > 15) ? d[4].substr(0,14)+".." : d[4];
+						el.append("text")
+								.attr("x", -0.5)
+								.attr("y", -0.5)
+								.text(n)
+								.attr("font-family", "sans-serif")
+								.attr("font-size", 0.25)
+								.attr("fill", "black");
+							
+						});
 		}
 
 		</script>
