@@ -188,6 +188,7 @@
 		var texts = [];
 		var zoom, container, svg, charts, xScale, yScale, itemSizeScale, itemScales,
 		categories, colors, macroColors, macroNames;
+		var textW = 10;
 
 		//Phase2 variables
 		//Donut
@@ -230,17 +231,6 @@
 				//console.log("checking el: "+i);
 				filter(el);
 			}
-		}
-
-		function zoomTo(point){
-			var t = [2];
-			var scale = 337;
-			var cx = w/2;
-			var cy = h/2;
-			t[0] = cx-(point[0]*(scale));
-			t[1] = cy-(point[1]*(scale));
-			d3.select(".zoomer").transition().duration(10000).attr("transform", "translate("+t[0]+","+t[1]+")scale("+scale+")");
-			swapPhase(2);
 		}
 
 		function getTransform(){
@@ -294,7 +284,6 @@
 			if(point && point.attr("display") == ""){
 				if (getAim()[2] != 1){
 					//Out
-					swapPhase(1);
 					var t = [d3.zoomIdentity
 							.translate(w/2 - getAim()[0] , h/2 - getAim()[1])
 							.scale(1), d3.zoomIdentity
@@ -310,16 +299,6 @@
 							.call(zoom.transform, t[1])
 						.transition()
 							.call(zoom.transform, t[2]);
-					/*transition([getAim()[0], getAim()[1], 1])
-					setTimeout(function(){
-						//Over
-						transition([point.attr("cx"), point.attr("cy"), 1]);
-						setTimeout(function(){
-							//In
-							transition([point.attr("cx"), point.attr("cy"), 337]);
-							setTimeout(function(){swapPhase(2);}, 1500);
-						}, 1500);
-					}, 1500);*/
 				}
 				else{
 					//Over
@@ -334,12 +313,6 @@
 							.call(zoom.transform, t[0])
 						.transition()
 							.call(zoom.transform, t[1]);
-					/*transition([point.attr("cx"), point.attr("cy"), 1]);
-					setTimeout(function(){
-						//In
-						transition([point.attr("cx"), point.attr("cy"), 337]);
-						setTimeout(function(){swapPhase(2);}, 1500);
-					}, 1500);*/
 				}	
 			}
 			else
@@ -355,13 +328,10 @@
 			if(list.length > 0){
 				if(list.length == 1){
 					var point = d3.select("[id='"+list[0]+"']");
-					//console.log(point.attr("cx"), point.attr("cy"), base[list[0]][4], list[0]);
-					//zoomTo([point.attr("cx"),point.attr("cy")]);
 					checkId(list[0]);
 					return "Found!";
 				}
 				else{
-					//console.log(list);
 					list.forEach(function(i){
 						addSuggestion(i);
 					});
@@ -394,70 +364,20 @@
 				.selectAll("."+el.value)
 				.attr("display", visible);
 			//var scale = getAim()[2];
-			//drawScreen(scale);
 		}
-
-		/*function drawScreen(scale){
-			var target = "circle";
-			d3.select(".dot").selectAll(target).each(function(){
-				var point = d3.select(this);
-				var cx = point.attr("cx");
-				var cy = point.attr("cy");
-				var aim = getAim();
-				var deltaX = Math.abs(aim[0]-cx);
-				var deltaY = Math.abs(aim[1]-cy);
-				var scaledW = w/2/scale;
-				var scaledH = h/2/scale;
-				
-				if(deltaX <= scaledW && deltaY <= scaledH){
-					if(phase == 1){
-						if(point.attr("display", ""))
-							point.attr("visibility", "visible");
-						else
-							point.attr("visibility", "hidden");
-					}
-					else{
-						var shape = d3.select(".shape").select("[id='"+point.attr("id")+"']");
-						if(shape.attr("display", ""))
-							shape.attr("visibility", "visible");
-						else
-							shape.attr("visibility", "hidden");
-					}
-				}
-			});
-
-		}*/
 
 		function drawP2(){
 			
-			console.log("drawPhase2()");
+			//console.log("drawPhase2()");
 
 			var aim = getAim();
 			var boundX = [aim[0]-((w/aim[2])/2), aim[0]+((w/aim[2])/2)];
 			var boundY = [aim[1]-((h/aim[2])/2), aim[1]+((h/aim[2])/2)];
-			console.log(aim[2]); 
+			//console.log(aim[2]); 
 
 			charts = svg.select(".shape").append("g");
 
 			drawCharts(boundX, boundY);
-
-			/*charts.append("line")
-					.attr("x1", boundX[0])
-					.attr("y1", boundY[0])
-					.attr("x2", boundX[1])
-					.attr("y2", boundY[1])
-					.attr('stroke-width', 1)
-					.attr("stroke", "black")
-					.attr("opacity", 1);
-			charts.append("line")
-					.attr("x1", boundX[1])
-					.attr("y1", boundY[0])
-					.attr("x2", boundX[0])
-					.attr("y2", boundY[1])
-					.attr('stroke-width', 1)
-					.attr("stroke", "black")
-					.attr("opacity", 1);*/
-
 		}
 
 		function clearCharts(){
@@ -479,6 +399,63 @@
 				d.setAttribute("display", "none");
 				s.setAttribute("display", "");
 				phase = 2;
+			}
+		}
+
+		function nameOperation(n){
+			if(n.length > 15){ 
+				n+".."; 
+			}else{
+				el.attr("name");
+				dot.append("text")
+			}
+			
+		}
+
+		function wrap(text, width) {
+			text.each(function () {
+				var text = d3.select(this);
+				if(text.text().length > 15)
+					text.text(text.text().substring(0, 15)+"..");
+			});
+			//wrapping
+			/*text.each(function () {
+				var text = d3.select(this),
+					words = text.text().split(/\s+/).reverse(),
+					word,
+					line = [],
+					lineNumber = 0,
+					lineHeight = 1.1, // ems
+					x = text.attr("x"),
+					y = text.attr("y"),
+					dy = 0, //parseFloat(text.attr("dy")),
+					tspan = text.text(null)
+								.append("tspan")
+								.attr("x", x)
+								.attr("y", y)
+								.attr("dy", dy + "em");
+				while (word = words.pop()) {
+					line.push(word);
+					tspan.text(line.join(" "));
+					if (tspan.node().getComputedTextLength() > width) {
+						line.pop();
+						tspan.text(line.join(" "));
+						line = [word];
+						tspan = text.append("tspan")
+									.attr("x", x)
+									.attr("y", y)
+									.attr("dy", ++lineNumber * lineHeight + dy + "em")
+									.text(word);
+					}
+				}
+			});*/
+		}
+
+		//Esc: reset
+		window.onkeyup = function(e) {
+			var key = e.keyCode ? e.keyCode : e.which;
+			if (key == 27 && getAim()[2] > 1) {
+				transition([w/2, h/2, 1]);
 			}
 		}
 
@@ -508,14 +485,14 @@
 
 				//Macro chart data/colors
 				macroNames = ["Protein", "Fat", "Carb"];
-				macroColors = ["rgb(215,223,35)", "rgb(190,30,45)", "rgb(247,148,30)"];
+				macroColors = ["#E7EC7E", "#D97B83", " #FAC07B"];
 
 				zoom = d3.zoom().scaleExtent(scale).translateExtent([[0,0],[w,h]]).on("zoom", zoomF);
 				//zoom = d3.zoom().on("zoom", zoomF);
 
 				function zoomF(){
 
-					console.log(d3.event.transform.k);
+					//console.log(d3.event.transform.k);
 
 					container.attr("transform", d3.event.transform);
 
@@ -558,7 +535,7 @@
 				//Size scale
 				itemSizeScale = d3.scaleLinear()
 				.domain([d3.min(dataset, function(d) { return d[5]; }), d3.max(dataset, function(d) { return d[5]; })])
-				.range([0, 1]);
+				.range([0.3, 1]);
 
 				//Shape scales
 				itemScales = [items];
@@ -620,7 +597,7 @@
 
 							//Texts
 							texts.push(el.attr("id"));
-							var n = (el.attr("name").length > 15) ? el.attr("name").substr(0,15)+".." : el.attr("name");
+							var n = el.attr("name");
 							dot.append("text")
 									.attr("id", "t"+el.attr("id"))
 									.attr("x", x-5)
@@ -628,7 +605,10 @@
 									.text(n)
 									.attr("font-family", "sans-serif")
 									.attr("font-size", 1)
-									.attr("fill", "black");
+									.attr("fill", "black")
+									.call(wrap, 10)
+								.append("svg:title")
+									.text(n);
 
 							//Clear highlights
 							highlights.forEach(function(i){
@@ -713,7 +693,7 @@
 										.style("stroke", "green")
 										.style("stroke-width", "0.3");
 								texts.push(i[0]);
-								var n = (e.attr("name").length > 15) ? e.attr("name").substr(0,14)+".." : e.attr("name");
+								var n = e.attr("name");
 								dot.append("text")
 									.attr("id", "t"+i[0])
 									.attr("x", e.attr("cx")-5)
@@ -721,7 +701,10 @@
 									.text(n)
 									.attr("font-family", "sans-serif")
 									.attr("font-size", 1)
-									.attr("fill", "black");
+									.attr("fill", "black")
+									.call(wrap, 10)
+								.append("svg:title")
+									.text(n);
 							});
 							
 						})
@@ -733,169 +716,7 @@
 						.attr("class", "shape")
 						.attr("display", "none");
 
-				/*shape.selectAll("g")
-						.data(dataset)
-						.enter()
-					.append("g")
-						.attr('transform', function(d){return "translate("+xScale(d[0])+","+yScale(d[1])+")";})
-						.attr("class", function(d) { return "c"+(d[3]+1); })
-						.attr("display", "none")
-						//.attr("visibility", "hidden")
-						.attr("id", function(d, i){ return i; })
-						.each(function (d) {
-							var el = d3.select(this);
-
-							var elSize = itemSizeScale(d[5])*itemX;
-							//console.log(elSize);
-							
-							var donutW = elSize/3;
-							var radius = donutW / 2;
-							var donutWidth = donutW / 6;
-
-							var arc = d3.arc()
-								.innerRadius(radius - donutWidth)
-								.outerRadius(radius)
-								.cornerRadius(padRadius)
-								.padAngle(padAngle);
-							
-							//Lines
-							path = ["", ""];
-							var finalPath = "";
-							var mid = [];
-							var tempP = [];
-							var innerR = radius;
-							var maxR = (elSize/2)-innerR;
-							var ground = 1.5;
-							
-							for(var i = 0; i < items; i++) {
-								
-								var index = i+9;
-								var cx = 0, cy = 0;
-								
-								
-								var r = ((itemScales[i](d[index]))*maxR)+innerR;
-								//var r = d[index]+innerR;
-								r = (r>maxR+innerR) ? maxR+innerR : r;
-								r *= ground;
-								//console.log(itemScales[i](d[index]), maxR);
-								var x = cx + r * Math.cos(2 * Math.PI * i / items);
-								var y = cy + r * Math.sin(2 * Math.PI * i / items);
-								var innerX = cx + innerR * Math.cos(2 * Math.PI * i / items);
-								var innerY = cy + innerR * Math.sin(2 * Math.PI * i / items);
-
-								//console.log(cx, cy, maxR, r, x, y, innerX, innerY);
-								//console.log(d[index], itemScales[i], d[index]/itemScales[i]);
-								finalPath = finalPath.concat(x+","+y+", ");
-								if (i<=4){
-									if(i==0){
-										path[0] = path[0].concat(x+","+y+", ");
-										tempP[0] = [x, y];
-									}
-									else if(i==4){
-										path[0] = path[0].concat(x+","+y);
-										tempP[1] = [x, y];
-									}
-									else
-										path[0] = path[0].concat(x+","+y+", ");
-								} 
-								else{
-									if(i==5){
-										path[1] = path[1].concat(x+","+y+", ");
-										tempP[2] = [x, y];
-									}
-									else if(i==10){
-										path[1] = path[1].concat(x+","+y);
-										tempP[3] = [x, y];
-									}
-									else
-										path[1] = path[1].concat(x+","+y+", ");
-								} 
-								
-								//var widthS = ((elSize/itemX)*0.1);
-								var line = el.append("line")
-										.attr("x1", innerX)
-										.attr("y1", innerY)
-										.attr("x2", x)
-										.attr("y2", y)
-										.attr('stroke-width', 0.005)
-										.attr("stroke", strokeColor)
-										.attr("opacity", "0.1");
-							}
-
-							//Polygon
-							//path[0] = path[0].substring(0, path[0].length-2);
-							//path[1] = path[1].substring(0, path[1].length-2);
-							finalPath = finalPath.substring(0, finalPath.length-2);
-
-							mid[0] = [tempP[3][0]+(tempP[0][0] - tempP[3][0])/2, tempP[3][1]+(tempP[0][1] - tempP[3][1])/2];
-							mid[1] = [tempP[2][0]+(tempP[1][0] - tempP[2][0])/2, tempP[2][1]+(tempP[1][1] - tempP[2][1])/2];
-							
-							path[0] = mid[0][0]+","+mid[0][1]+", ".concat(path[0]);
-							path[0] = path[0].concat(", "+mid[1][0]+","+mid[1][1]);
-							path[1] = mid[1][0]+","+mid[1][1]+", ".concat(path[1]);
-							path[1] = path[1].concat(", "+mid[0][0]+","+mid[0][1]);
-
-							//Final shape
-							var polygonMin = el.append("polygon")
-									.attr('stroke-width', 0.005)
-									.attr("stroke", strokeColor)
-									.attr("fill", "none")
-									.attr("points", finalPath)
-								.append("svg:title")
-									.text("minerals");
-							//Vitamins
-							var polygonVit = el.append("polygon")
-									.attr('stroke-width', 0.01)
-									.attr("stroke", "none")
-									.attr("fill", "#673ab763")
-									.attr("points", path[0])
-								.append("svg:title")
-									.text("vitamins");
-							//Minerals
-							var polygonMin = el.append("polygon")
-									.attr('stroke-width', 0.01)
-									.attr("stroke", "none")
-									.attr("fill", "#3a80b763")
-									.attr("points", path[1])
-								.append("svg:title")
-									.text("minerals");
-
-							//Donut
-							var tempData = [d[6], d[7], d[8]]; 
-							el.selectAll('path')
-									.data(d3.pie().sort(null)(tempData))
-									.enter()
-								.append('path')
-									.attr('d', arc)
-									.attr('fill', function(d, i){return macroColors[i];})
-								.append("svg:title")
-									.text(function(d, i){return macroNames[i];});
-
-							//Class color
-							el.append("circle")
-									.attr("cx", 0)
-									.attr("cy", 0)
-									.attr("r", (radius - donutWidth) * 0.75)
-									.attr("stroke", colors[d[3]-1])
-									.attr("stroke-width", 0.075)
-									.attr("fill", "none")
-								.append("svg:title")
-									.text(categories[d[3]]);
-
-							//Text
-							var n = (d[4].length > 15) ? d[4].substr(0,14)+".." : d[4];
-							el.append("text")
-									.attr("x", -0.5)
-									.attr("y", -0.5)
-									.text(n)
-									.attr("font-family", "sans-serif")
-									.attr("font-size", 0.25)
-									.attr("fill", "black");
-								
-							});*/
-
 				preset(location.search.substr(1));
-				//drawScreen(1);
 				loading(false);
 			}
 
@@ -909,7 +730,7 @@
 				.append("g")
 					.attr('transform', function(d){return "translate("+xScale(d[0])+","+yScale(d[1])+")";})
 					.attr("class", function(d) { return "c"+(d[3]+1); })
-					.attr("display", function(d){console.log("c"+(d[3])+": "+d3.select(".checkboxmenubuttons").select("#c"+(d[3]))); return (d3.select(".checkboxmenubuttons").select("#c"+(d[3])).property("checked")==true) ? "" : "none" ;})
+					.attr("display", function(d){ return (d3.select(".checkboxmenubuttons").select("#c"+(d[3]+1)).property("checked")==true) ? "" : "none" ;})
 					.attr("id", function(d, i){ return i; })
 					.each(function (d) {
 						var el = d3.select(this);
@@ -1005,7 +826,7 @@
 						path[1] = path[1].concat(", "+mid[0][0]+","+mid[0][1]);
 
 						//Final shape
-						var polygonMin = el.append("polygon")
+						var polygonFin = el.append("polygon")
 								.attr('stroke-width', 0.005)
 								.attr("stroke", strokeColor)
 								.attr("fill", "none")
@@ -1016,7 +837,7 @@
 						var polygonVit = el.append("polygon")
 								.attr('stroke-width', 0.01)
 								.attr("stroke", "none")
-								.attr("fill", "#673ab763")
+								.attr("fill", " #FCF696")
 								.attr("points", path[0])
 							.append("svg:title")
 								.text("vitamins");
@@ -1024,7 +845,7 @@
 						var polygonMin = el.append("polygon")
 								.attr('stroke-width', 0.01)
 								.attr("stroke", "none")
-								.attr("fill", "#3a80b763")
+								.attr("fill", "#E1EEE8")
 								.attr("points", path[1])
 							.append("svg:title")
 								.text("minerals");
@@ -1052,14 +873,17 @@
 								.text(categories[d[3]]);
 
 						//Text
-						var n = (d[4].length > 15) ? d[4].substr(0,14)+".." : d[4];
+						var n = d[4];
 						el.append("text")
-								.attr("x", -0.5)
-								.attr("y", -0.5)
+								.attr("x", -0.75)
+								.attr("y", -elSize/3)
 								.text(n)
 								.attr("font-family", "sans-serif")
 								.attr("font-size", 0.25)
-								.attr("fill", "black");
+								.attr("fill", "black")
+								.call(wrap, 2)
+							.append("svg:title")
+								.text(n);
 							
 						});
 		}
