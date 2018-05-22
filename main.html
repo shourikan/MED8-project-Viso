@@ -485,7 +485,7 @@
 
 				//Macro chart data/colors
 				macroNames = ["Protein", "Fat", "Carb"];
-				macroColors = ["#E7EC7E", "#D97B83", " #FAC07B"];
+				macroColors = ["#027071", "#DE5B49", "#FBB040"];
 
 				zoom = d3.zoom().scaleExtent(scale).translateExtent([[0,0],[w,h]]).on("zoom", zoomF);
 				//zoom = d3.zoom().on("zoom", zoomF);
@@ -837,7 +837,7 @@
 						var polygonVit = el.append("polygon")
 								.attr('stroke-width', 0.01)
 								.attr("stroke", "none")
-								.attr("fill", " #FCF696")
+								.attr("fill", "#F4DC90")
 								.attr("points", path[0])
 							.append("svg:title")
 								.text("vitamins");
@@ -845,7 +845,7 @@
 						var polygonMin = el.append("polygon")
 								.attr('stroke-width', 0.01)
 								.attr("stroke", "none")
-								.attr("fill", "#E1EEE8")
+								.attr("fill", "#BAD5EE")
 								.attr("points", path[1])
 							.append("svg:title")
 								.text("minerals");
