@@ -8,7 +8,6 @@
 .header {
 	padding:0px;
 	margin:0px;
-
 }	
 
 .space {
@@ -20,7 +19,7 @@
 }
 
  .center {
-		margin-top:50px;
+		/*margin-top:50px;*/
 		display: block;
 		margin-left: auto;
     	margin-right: auto;
@@ -28,14 +27,15 @@
 	
 .text {
 	color:white;
-	padding-left:30%;
-	padding-right:30%;
+	padding-left:32.5%;
+	padding-right:33%;
 
 	text-align: left;
-	padding-top:20px;
+	/*padding-top: 20px;*/
+	padding-top:3px;
     margin: auto;
-    padding-bottom:100px;
-    font-family: "Neutra Text";
+    /*padding-bottom:100px;*/
+    font-family: "Neutral Text";
     font-size: 17px;
     font-variant: Demi;
     text-rendering: optimizeLegibility;

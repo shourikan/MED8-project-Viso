@@ -838,6 +838,7 @@
 								.attr('stroke-width', 0.01)
 								.attr("stroke", "none")
 								.attr("fill", "#F4DC90")
+								.attr("opacity", 0.75) 
 								.attr("points", path[0])
 							.append("svg:title")
 								.text("vitamins");
@@ -846,10 +847,21 @@
 								.attr('stroke-width', 0.01)
 								.attr("stroke", "none")
 								.attr("fill", "#BAD5EE")
+								.attr("opacity", 0.75) 
 								.attr("points", path[1])
 							.append("svg:title")
 								.text("minerals");
 
+						//Background circle
+						el.append("circle")
+								.attr("cx", 0)
+								.attr("cy", 0)
+								.attr("r", radius - donutWidth)
+								.attr("stroke", "none")
+								.attr("fill", "white")
+							.append("svg:title")
+								.text(d[4]);
+								
 						//Donut
 						var tempData = [d[6], d[7], d[8]]; 
 						el.selectAll('path')
