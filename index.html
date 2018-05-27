@@ -11,27 +11,39 @@
 	</head>
 	<body>
 	<div id="phase1">
-		<div class="header">		
-			<img src="images\header2.png" style= " width: 100%; max-height: 370px;"  />
-		</div> 
+	
 		<div class="space"></div>
 	
 		<div class="center">	
-			<img src="images\planting1.png" style= " width: 35%" id="image" onclick="changeImage()" />
+			<img src="images\planting1.png" style= " width: 45%" id="image" onclick="changeImage()" />
 			<p class="text" id="text">  Thousands of days ago, and millions of heartbeats . . . <p>
     	</div>
     </div>
     
-    <div id="phase2" style="display:none">
-    
-    	<p class="textPhase2H" id="textPhase2Headline">  HEY! Welcome to the world of food. <p>
-    	<p class="textPhase2" id="textPhase2"> This is a t-SNE map made from dataset of 8642 food points including
-		all the food you might have ever encounter. The points are colored by their food group,
-		and distributed across this map by their nutritional similarities.  <p>
-		
-		
-		<button class="button" id="continue"> <img src="images\button.png" style= "width: 50px" /> </button>
+    <div  id="phase2" style="display:none">
 
+			<video autoplay muted id="VideoPudding" style="display:none">
+			<source src="images/pudding.mp4" type="video/mp4" >
+			</video>
+					
+			<video autoplay muted id="VideoFrog" style="display:none">
+			<source src="images/frog.mp4" type="video/mp4">
+			</video>
+    
+    	<div class="phase2Inside">
+    
+    			<p class="textPhase2H" id="textPhase2Headline">  HEY! Welcome in the world of food. <p>
+    			<p class="textPhase2" id="textPhase2"> This is a t-SNE map made from dataset of 8642 food points including
+				all the food you might have ever encounter. The points are colored by their food group,
+				and distributed across this map by their nutritional similarities.  <p>
+		
+		
+				<button class="button" id="continue"> <img src="images\button.png" style= "width: 50px" /> </button>
+		</div>		 
+		
+	    
+		
+ 
     </div>
     
     <div id="phase3" style="display:none">
@@ -62,17 +74,17 @@ products</br>  </p>
          
    <script type="text/javascript">
 		var done = false;
-		var tempo = 25;
+		var tempo = 50;
    
         pos = 0;
-        link = [ "images/padastarseed.gif","images/nurish1.png", "images/starseed2.gif","images/intheworldfood.jpg","images/intheworldfood.jpg" ];
+        link = [ "images/padastarseed.gif","images/nurish1.png", "images/starseed2.gif","images/intheworldfood.png","images/intheworldfood.jpg" ];
         //texts=["a","h"];
-        texts =["A little star seed was born.","A kind caregiver took care of that little star, by nourishing its body. Starting with a sweet milk, the range of food was slowly expanded, with an aim to make it shine and grow healthily.","Soon that star grew old enough to choose on its own what she/he desire from the world of food. And especially, old enough to understand how to choose.", "This became unofficially her/his relationship with food. Huh, relationships are a big thing! How is that going to be?","eh" ];
+        texts =["A little star seed was born.","A kind caregiver took care of that little star, by nourishing its body. Starting with a sweet milk, the range of food was slowly expanded, with an aim to make it shine and grow healthily.","Soon that star grew old enough to choose on its own what she desire from the world of food. And especially, old enough to understand how to choose.", "This became unofficially her relationship with food. Huh, relationships are a big thing! How is that going to be?" ];
        
         function changeImage(){
 
 			pos++;
-            if (pos > 4) {
+            if (pos > 3) {
            
 				document.getElementById('phase1').style.display='none' ;
 				document.getElementById('phase2').style.display='block' ;             
@@ -110,10 +122,16 @@ products</br>  </p>
  				}
  			
  			if (action==2) {
+ 			 	document.getElementById('VideoPudding').style.display='none' ;
+  			 	document.getElementById('VideoFrog').style.display='block' ;
+
  		 		document.getElementById("textPhase2").innerHTML=document.getElementById("textPhase2").innerHTML + "<br/>"+"To raw frog legs.. ";
  				action ++;
  				}
+ 				
  			if (action==1) {
+  		 		document.getElementById('VideoPudding').style.display='block' ;
+
  		 		document.getElementById("textPhase2").innerHTML=document.getElementById("textPhase2").innerHTML + "<br/>"+ "From chocolate pudding..";
  				action ++;
  				}
