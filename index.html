@@ -83,7 +83,6 @@ products</br>  </p>
        
         function changeImage(){
 
-			pos++;
             if (pos > 3) {
            
 				document.getElementById('phase1').style.display='none' ;
@@ -99,7 +98,8 @@ products</br>  </p>
 				done = true;
 				setTimeout(function(){
 					done = false;
-					showText("text", texts[pos], 0, tempo); 
+					showText("text", texts[pos], 0, tempo);
+					pos++; 
 				}, tempo*2);
 			}
         };
