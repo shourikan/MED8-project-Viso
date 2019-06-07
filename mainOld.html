@@ -3,9 +3,8 @@
 	<head>
 		<meta charset="utf-8">
 			<title>D3 Page Template</title>
-			<script type="text/javascript" src = "scripts\d3.js"></script>
-			<script type="text/javascript" src = "scripts\d3-color.js"></script>
-			<script type="text/javascript" src = "scripts\read-csv.js"></script>
+			<script type="text/javascript" src="scripts\d3.js"></script>
+			<script type="text/javascript" src="scripts\read-csv.js"></script>
 			<link rel="stylesheet" type="text/css" href="styles\semantic.css" />
 			<!--<link rel="stylesheet" href="style.css">-->
 			<style type="text/css">
@@ -72,9 +71,9 @@
 					top: 50px;
 					margin-left: 10px;
 				}
-				/*.catBox{
-					/*Checkboxes
-				}*/
+				.catBox{
+					/*Checkboxes*/
+				}
 				.colorBox{
 					display: inline-block;
 					border: 1px solid black;
@@ -257,12 +256,10 @@
 		var padAngle = 0.05;
 		var padRadius = 0;
 		//Polygon, Lines
-		var items = 10;
+		var items = 11;
 		var angleProgress = 360/(items+1);
 		var path = [];
-		//var strokeColor = "grey";
-		var fillColor = "#231f20";
-		var rdaIndicatorColo = "#bcbec0"
+		var strokeColor = "black";
 		
 
 		function clearSuggestions(){
@@ -344,7 +341,6 @@
 		function checkId(id){
 			var point = d3.select(".dot").select("[id='"+id+"']");
 			//console.log(point);
-			var zoomScale = 100;
 			if(point && point.attr("display") == ""){
 				if (getAim()[2] != 1){
 					//Out
@@ -353,8 +349,8 @@
 							.scale(1), d3.zoomIdentity
 							.translate(w/2 - point.attr("cx") , h/2 -point.attr("cy"))
 							.scale(1),d3.zoomIdentity
-							.translate(w/2 - point.attr("cx")*zoomScale , h/2 - point.attr("cy")*zoomScale)
-							.scale(zoomScale)];
+							.translate(w/2 - point.attr("cx")*337 , h/2 - point.attr("cy")*337)
+							.scale(337)];
 			
 					svg.transition()
 							.duration(1000)
@@ -369,8 +365,8 @@
 					var t = [d3.zoomIdentity
 							.translate(w/2 - point.attr("cx") , h/2 - point.attr("cy"))
 							.scale(1), d3.zoomIdentity
-							.translate(w/2 - point.attr("cx")*zoomScale , h/2 -point.attr("cy")*zoomScale)
-							.scale(zoomScale)];
+							.translate(w/2 - point.attr("cx")*337 , h/2 -point.attr("cy")*337)
+							.scale(337)];
 							
 					svg.transition()
 							.duration(1000)
@@ -579,7 +575,7 @@
 				var rect = svg.append("rect")
 					.attr("width", w)
 					.attr("height", h)
-					.style("fill", fillColor)
+					.style("fill", "white")
 					.style("pointer-events", "all");
 
 				container = svg.append("g")
@@ -602,7 +598,7 @@
 				.range([0.3, 1]);
 
 				//Shape scales
-				/*itemScales = [items];
+				itemScales = [items];
 				for (var i = 0; i<items; i++){
 					var index = i+9;
 					//itemScales[i] = d3.max(dataset, function(d) { return d[index]; });
@@ -610,7 +606,7 @@
 				.domain([0, 2*(d3.mean(dataset, function(d) { return d[index]; })+d3.deviation(dataset, function(d) { return d[index]; }))])
 				.range([0, 1]);
 					//console.log(itemScales[i]);
-				}*/
+				}
 						
 				//Draw dots
 				var dot = container.append("g")
@@ -802,56 +798,44 @@
 						var elSize = itemSizeScale(d[5])*itemX;
 						//console.log(elSize);
 						
-						//var donutW = elSize/3;
-						//var radius = donutW / 2;
-						//var donutWidth = donutW / 6;
+						var donutW = elSize/3;
+						var radius = donutW / 2;
+						var donutWidth = donutW / 6;
 
-						/*var arc = d3.arc()
+						var arc = d3.arc()
 							.innerRadius(radius - donutWidth)
 							.outerRadius(radius)
 							.cornerRadius(padRadius)
-							.padAngle(padAngle);*/
+							.padAngle(padAngle);
 						
-						//Variables
+						//Lines
 						path = ["", ""];
 						var finalPath = "";
 						var mid = [];
 						var tempP = [];
-						var innerMult = 35*3*2;
-						var innerR = elSize / innerMult;
-						var ground = 1;
-						var maxR = ((elSize/2)-innerR)*ground;
-
-						//Marco calculations
-						var tempData = [d[6], d[7], d[8]];
-						var macroMaxIndex = tempData.indexOf(d3.max(tempData));
-						var macroMaxPerc = tempData[macroMaxIndex]/d3.sum(tempData);
-						var macroMaxColor = d3.hsl(macroColors[macroMaxIndex]);
-						var scaleL = d3.scaleLinear().domain([0.3,1.0]).range([0.70,0.35]);
-						macroMaxColor.l = scaleL(macroMaxPerc);
+						var innerR = radius;
+						var maxR = (elSize/2)-innerR;
+						var ground = 1.5;
 						
-						//Lines
 						for(var i = 0; i < items; i++) {
 							
 							var index = i+9;
 							var cx = 0, cy = 0;
 							
-							//var r = ((itemScales[i](d[index]))*maxR)+innerR;
-							var r = ((d[index]*maxR)+innerR)*ground;
+							
+							var r = ((itemScales[i](d[index]))*maxR)+innerR;
 							//var r = d[index]+innerR;
 							r = (r>maxR+innerR) ? maxR+innerR : r;
-							//console.log(r > maxR+innerR);
+							r *= ground;
+							//console.log(itemScales[i](d[index]), maxR);
 							var x = cx + r * Math.cos(2 * Math.PI * i / items);
 							var y = cy + r * Math.sin(2 * Math.PI * i / items);
 							var innerX = cx + innerR * Math.cos(2 * Math.PI * i / items);
 							var innerY = cy + innerR * Math.sin(2 * Math.PI * i / items);
 
-							var scaleR = d3.scaleLinear().domain([0,maxR+innerR]).range([0.02,0.08]);
-							var nutriR = scaleR(r);
-
 							//console.log(cx, cy, maxR, r, x, y, innerX, innerY);
 							//console.log(d[index], itemScales[i], d[index]/itemScales[i]);
-							/*finalPath = finalPath.concat(x+","+y+", ");
+							finalPath = finalPath.concat(x+","+y+", ");
 							if (i<=4){
 								if(i==0){
 									path[0] = path[0].concat(x+","+y+", ");
@@ -875,7 +859,7 @@
 								}
 								else
 									path[1] = path[1].concat(x+","+y+", ");
-							} */
+							} 
 							
 							//var widthS = ((elSize/itemX)*0.1);
 							var line = el.append("line")
@@ -883,42 +867,15 @@
 									.attr("y1", innerY)
 									.attr("x2", x)
 									.attr("y2", y)
-									.attr('stroke-width', 0.04)
-									.attr("stroke", colors[d[3]])
-									.attr("opacity", "1");
-							
-							var head = el.append("circle")
-									.attr("cx", x)
-									.attr("cy", y)
-									.attr("r", nutriR)
-									.attr("stroke", macroMaxColor)
-									.attr("stroke-width", nutriR)
-									.attr("fill", fillColor)
-								.append("svg:title")
-									.text('head');
+									.attr('stroke-width', 0.005)
+									.attr("stroke", strokeColor)
+									.attr("opacity", "0.1");
 						}
-
-						//MAX RDA indicator
-						var arcGenerator = d3.arc();
-
-						// Generate the path string
-						var pathData = arcGenerator({
-							startAngle: Math.PI / 12,
-							endAngle: Math.PI / 6,
-							innerRadius: maxR+innerR,
-							outerRadius: maxR+innerR
-						});
-						
-						var sector = el.append("path")
-									.attr("fill", "none")
-									.attr("stroke-width", 0.07)
-									.attr("stroke", "#bcbec0")
-									.attr("d", pathData)
 
 						//Polygon
 						//path[0] = path[0].substring(0, path[0].length-2);
 						//path[1] = path[1].substring(0, path[1].length-2);
-						/*finalPath = finalPath.substring(0, finalPath.length-2);
+						finalPath = finalPath.substring(0, finalPath.length-2);
 
 						mid[0] = [tempP[3][0]+(tempP[0][0] - tempP[3][0])/2, tempP[3][1]+(tempP[0][1] - tempP[3][1])/2];
 						mid[1] = [tempP[2][0]+(tempP[1][0] - tempP[2][0])/2, tempP[2][1]+(tempP[1][1] - tempP[2][1])/2];
@@ -926,47 +883,47 @@
 						path[0] = mid[0][0]+","+mid[0][1]+", ".concat(path[0]);
 						path[0] = path[0].concat(", "+mid[1][0]+","+mid[1][1]);
 						path[1] = mid[1][0]+","+mid[1][1]+", ".concat(path[1]);
-						path[1] = path[1].concat(", "+mid[0][0]+","+mid[0][1]);*/
+						path[1] = path[1].concat(", "+mid[0][0]+","+mid[0][1]);
 
 						//Final shape
-						/*var polygonFin = el.append("polygon")
+						var polygonFin = el.append("polygon")
 								.attr('stroke-width', 0.005)
 								.attr("stroke", strokeColor)
 								.attr("fill", "none")
 								.attr("points", finalPath)
 							.append("svg:title")
-								.text("minerals");*/
+								.text("minerals");
 						//Vitamins
-						/*var polygonVit = el.append("polygon")
+						var polygonVit = el.append("polygon")
 								.attr('stroke-width', 0.01)
 								.attr("stroke", "none")
 								.attr("fill", "#F4DC90")
 								.attr("opacity", 0.75) 
 								.attr("points", path[0])
 							.append("svg:title")
-								.text("vitamins");*/
+								.text("vitamins");
 						//Minerals
-						/*var polygonMin = el.append("polygon")
+						var polygonMin = el.append("polygon")
 								.attr('stroke-width', 0.01)
 								.attr("stroke", "none")
 								.attr("fill", "#BAD5EE")
 								.attr("opacity", 0.75) 
 								.attr("points", path[1])
 							.append("svg:title")
-								.text("minerals");*/
+								.text("minerals");
 
 						//Background circle
-						/*el.append("circle")
+						el.append("circle")
 								.attr("cx", 0)
 								.attr("cy", 0)
 								.attr("r", radius - donutWidth)
 								.attr("stroke", "none")
 								.attr("fill", "white")
 							.append("svg:title")
-								.text(d[4]);*/
+								.text(d[4]);
 								
 						//Donut
-						/*var tempData = [d[6], d[7], d[8]]; 
+						var tempData = [d[6], d[7], d[8]]; 
 						el.selectAll('path')
 								.data(d3.pie().sort(null)(tempData))
 								.enter()
@@ -974,10 +931,10 @@
 								.attr('d', arc)
 								.attr('fill', function(d, i){return macroColors[i];})
 							.append("svg:title")
-								.text(function(d, i){return macroNames[i];});*/
+								.text(function(d, i){return macroNames[i];});
 
 						//Class color
-						/*el.append("circle")
+						el.append("circle")
 								.attr("cx", 0)
 								.attr("cy", 0)
 								.attr("r", (radius - donutWidth) * 0.75)
@@ -985,7 +942,7 @@
 								.attr("stroke-width", 0.075)
 								.attr("fill", "none")
 							.append("svg:title")
-								.text(categories[d[3]]);*/
+								.text(categories[d[3]]);
 
 						//Text
 						var n = d[4];
